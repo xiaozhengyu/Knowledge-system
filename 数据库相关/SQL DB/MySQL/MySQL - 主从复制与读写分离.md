@@ -7,7 +7,7 @@
 主要涉及三个线程: BinLog 线程、I/O 线程和 SQL 线程。
 
 -   BinLog 线程：负责记录主数据库上所有修改相关（insert,update,delete,create,drop,alter）的SQL语句至二进制日志
--   I/O线程：负责读取主数据库的二进制日志，并写入从数据库的中继日志
+-   I/O线程：负责读取主数据库的二进制日志，并复制到从数据库的中继日志
 -   SQL线程：负责读取并执行中继日志中的SQL
 
 ![img](markdown/MySQL - 主从复制与读写分离.assets/master-slave.png)
