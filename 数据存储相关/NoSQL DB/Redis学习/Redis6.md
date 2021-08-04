@@ -92,7 +92,7 @@ NoSQL = <font color = red>Not Only SQL</font>，泛指所有非关系数据。No
     -   一般作为缓存数据库辅助持久化数据库
 2.  Redis
     -   几乎涵盖了Memcache的绝大部分功能
-    -   数据都存储在内存，支持持久化（主要用于备份恢复）
+    -   数据都存储在内存，==支持持久化==（主要用于备份恢复）
     -   支持多种数据结构的value，例如string、list、hash、set、zset
     -   一般作为缓存数据库辅助持久化数据库
 3.  MongoDB
