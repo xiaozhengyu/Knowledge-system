@@ -368,7 +368,9 @@ Redis的key值是==二进制安全==的，这意味着可以用任何二进制�
 
 #### 3.1.2 常用命令
 
-##### <font color = #1AA3FF>KEYS</font> pattern
+##### 查询类
+
+###### <font color = #1AA3FF>KEYS</font> pattern
 
 >   时间复杂度：O(N)
 >
@@ -389,47 +391,9 @@ Redis的key值是==二进制安全==的，这意味着可以用任何二进制�
 2) "k1"
 ```
 
-##### <font color = #1AA3FF>DEL</font> key [key …]
 
->   时间复杂度：O(N)，当删除的key是字符串以外的复杂数据类型时（如`List`、`Set`、`Hash`），删除这个key的时间复杂度是O(1)
->
->   说明：删除指定的一批key，如果删除的key不存在则直接跳过
->
->   返回：被删除的keys的数量
 
-```
-127.0.0.1:6379> KEYS *
-1) "k1"
-2) "k2"
-3) "k4"
-4) "k3"
-127.0.0.1:6379> DEL k1 k2 k5 k6
-(integer) 2
-127.0.0.1:6379> KEYS *
-1) "k4"
-2) "k3"
-```
-
-##### <font color = #1AA3FF>RENAME</font> oldKey newKey
-
->   时间复杂度：O(1)
->
->   说明：为指定的key设置新的名称
-
-```
-127.0.0.1:6379> keys *
-1) "k1"
-127.0.0.1:6379> RENAME k1 k2
-OK
-127.0.0.1:6379> keys *
-1) "k2"
-127.0.0.1:6379> RENAME k2 k2
-OK
-127.0.0.1:6379> keys *
-1) "k2"
-```
-
-##### <font color = #1AA3FF>EXISTS</font> key [key ...]
+###### <font color = #1AA3FF>EXISTS</font> key [key ...]
 
 >   时间复杂度：O(1)
 >
@@ -454,7 +418,113 @@ OK
 
 ```
 
-##### <font color = #1AA3FF>EXPIRE</font> key seconds
+
+###### <font color = #1AA3FF>TYPE</font> key
+
+>   时间复杂度：O(1)
+>
+>   说明：查询指定key所存储的value的存储类型。
+>
+>   返回：`string`, `list`, `set`, `zset` 和 `hash`等不同类型，如果key不存在就返回none
+
+```
+127.0.0.1:6379> SET k1 stirng
+OK
+127.0.0.1:6379> LPUSH k2 1 2 3 4 5 6
+(integer) 6
+127.0.0.1:6379> SADD k3 a b c
+(integer) 3
+127.0.0.1:6379> KEYS *
+1) "k3"
+2) "k2"
+3) "k1"
+127.0.0.1:6379> TYPE k1
+string
+127.0.0.1:6379> TYPE k2
+list
+127.0.0.1:6379> TYPE k3
+set
+127.0.0.1:6379> TYPE k4
+none
+```
+
+
+
+###### <font color = #1AA3FF>TTL</font> key
+
+>时间复杂度：O(1)
+>
+>说明：查询指定key的剩余有效时间。2.6版本之后添加了<font color = #1AA3FF>PTTL</font>命令，以毫秒为单位返回key的剩余时间。
+>
+>返回：
+>
+>-   2.6及以前版本：-1 key不存在或已经过期
+>-   2.8及之后版本：-1 key存在且没有设置过期时间  -2 key不存在或已经过期
+
+```
+127.0.0.1:6379> KEYS *
+1) "k2"
+127.0.0.1:6379> TTL k1    # k1不存在
+(integer) -2
+127.0.0.1:6379> TTL k2    # k2没有设置过期时间
+(integer) -1
+127.0.0.1:6379> EXPIRE k2 100
+(integer) 1
+127.0.0.1:6379> TTL k2    # k2尚未过期
+(integer) 96
+127.0.0.1:6379> TTL k2    # k2已经过期
+(integer) -2
+```
+
+
+
+##### 操作类
+
+###### <font color = #1AA3FF>DEL</font> key [key …]
+
+>   时间复杂度：O(N)，当删除的key是字符串以外的复杂数据类型时（如`List`、`Set`、`Hash`），删除这个key的时间复杂度是O(1)
+>
+>   说明：删除指定的一批key，如果删除的key不存在则直接跳过
+>
+>   返回：被删除的keys的数量
+
+```
+127.0.0.1:6379> KEYS *
+1) "k1"
+2) "k2"
+3) "k4"
+4) "k3"
+127.0.0.1:6379> DEL k1 k2 k5 k6
+(integer) 2
+127.0.0.1:6379> KEYS *
+1) "k4"
+2) "k3"
+```
+
+
+
+###### <font color = #1AA3FF>RENAME</font> oldKey newKey
+
+>   时间复杂度：O(1)
+>
+>   说明：为指定的key设置新的名称
+
+```
+127.0.0.1:6379> keys *
+1) "k1"
+127.0.0.1:6379> RENAME k1 k2
+OK
+127.0.0.1:6379> keys *
+1) "k2"
+127.0.0.1:6379> RENAME k2 k2
+OK
+127.0.0.1:6379> keys *
+1) "k2"
+```
+
+
+
+###### <font color = #1AA3FF>EXPIRE</font> key seconds
 
 >   时间复杂度：O(1)
 >
@@ -568,7 +638,9 @@ OK
     127.0.0.1:6379> 
     ```
 
-##### <font color = #1AA3FF>EXPIREAT</font> key timestamp
+
+
+###### <font color = #1AA3FF>EXPIREAT</font> key timestamp
 
 >   时间复杂度：O(1)
 >
@@ -587,70 +659,15 @@ OK
 (integer) 0
 ```
 
-##### <font color = #1AA3FF>PERSIST</font> key
+
+
+###### <font color = #1AA3FF>PERSIST</font> key
 
 >   时间复杂度：O(1)
 >
 >   说明：移除设置在给定key上的过期设置
 >
 >   返回：1-移除成功 0-移除失败（key不存在或没有设置过期时间）
-
-##### <font color = #1AA3FF>TTL</font> key
-
->时间复杂度：O(1)
->
->说明：查询指定key的剩余有效时间。2.6版本之后添加了<font color = #1AA3FF>PTTL</font>命令，以毫秒为单位返回key的剩余时间。
->
->返回：
->
->-   2.6及以前版本：-1 key不存在或已经过期
->-   2.8及之后版本：-1 key存在且没有设置过期时间  -2 key不存在或已经过期
-
-```
-127.0.0.1:6379> KEYS *
-1) "k2"
-127.0.0.1:6379> TTL k1    # k1不存在
-(integer) -2
-127.0.0.1:6379> TTL k2    # k2没有设置过期时间
-(integer) -1
-127.0.0.1:6379> EXPIRE k2 100
-(integer) 1
-127.0.0.1:6379> TTL k2    # k2尚未过期
-(integer) 96
-127.0.0.1:6379> TTL k2    # k2已经过期
-(integer) -2
-```
-
-##### <font color = #1AA3FF>TTL</font> key
-
->   时间复杂度：O(1)
->
->   说明：查询指定key所存储的value的存储类型。
->
->   返回：`string`, `list`, `set`, `zset` 和 `hash`等不同类型，如果key不存在就返回none
-
-```
-127.0.0.1:6379> SET k1 stirng
-OK
-127.0.0.1:6379> LPUSH k2 1 2 3 4 5 6
-(integer) 6
-127.0.0.1:6379> SADD k3 a b c
-(integer) 3
-127.0.0.1:6379> KEYS *
-1) "k3"
-2) "k2"
-3) "k1"
-127.0.0.1:6379> TYPE k1
-string
-127.0.0.1:6379> TYPE k2
-list
-127.0.0.1:6379> TYPE k3
-set
-127.0.0.1:6379> TYPE k4
-none
-```
-
-
 
 
 
@@ -664,6 +681,68 @@ none
 
 #### 3.2.2 常用命令
 
+##### 查询类
+
+###### <font color = #1AA3FF>GET</font> key
+
+
+
+###### <font color = #1AA3FF>MGET</font> key [key …]
+
+
+
+###### <font color = #1AA3FF>GETSET</font> key value
+
+
+
+###### <font color = #1AA3FF>GETRANGE</font> key start end
+
+
+
+###### <font color = #1AA3FF>STRLEN</font> key
+
+
+
+##### 操作类
+
+###### <font color = #1AA3FF>SET</font> key value [<font color = #1AA3FF>EX</font> seconds] [<font color = #1AA3FF>PX</font> milliseconds] [<font color = #1AA3FF>NX</font>|<font color = #1AA3FF>XX</font>]
+
+
+
+###### <font color = #1AA3FF>MSET</font> key value [key value …]
+
+
+
+###### <font color = #1AA3FF>SETNX</font> key value
+
+
+
+###### <font color = #1AA3FF>MSETNX</font> key value [key value …]
+
+
+
+###### <font color = #1AA3FF>SETEX</font> key seconds value
+
+
+
+###### <font color = #1AA3FF>PSETEX</font> key milliseconds value
+
+
+
+###### <font color = #1AA3FF>INCR</font> key
+
+
+
+###### <font color = #1AA3FF>INCRBY</font> key increment
+
+
+
+###### <font color = #1AA3FF>DECR</font> key
+
+
+
+###### <font color = #1AA3FF>DECR</font> key decrement
+
 #### 3.2.3 数据结构
 
 ### 3.3 列表（List）
@@ -674,7 +753,7 @@ Redis列表是简单的字符串列表。一个列表最多可以包含2^32^-1�
 
 可以按照顺序将元素插入到列表的头部（左边）或尾部（右边）。LPUSH命令将一个新元素插到列表头部，RPUSH命令将一个新元素插到列表尾部，当对一个key执行某个列表命令时，Redis会自动创建列表，类似的，当对某个key执行列表清空命令时，Redis会自动删除列表。
 
-Redis列表支持以O(1)的时间复杂度操作列表两端的数据，但是操作列表中间的元素需要的时间复杂度为O(n)，当数据量很大的时候操作就会很忙，为此Redis列表提供了异步操作支持（将在后文介绍）。
+Redis列表支持以O(1)的时间复杂度操作列表两端的数据，但是操作列表中间的元素需要的时间复杂度为O(n)，当数据量很大的时候操作就会很忙，为此Redis列表提供了异步操作支持（后文介绍）。
 
 #### 3.3.2 常用命令
 
