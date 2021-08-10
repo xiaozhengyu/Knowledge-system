@@ -372,11 +372,11 @@ Redis的key值是==二进制安全==的，这意味着可以用任何二进制�
 
 ###### <font color = #1AA3FF>KEYS</font> pattern
 
->   时间复杂度：O(N)
+>   **时间复杂度：**O(N)
 >
->   说明：查找所有匹配给定正则表达式的键
+>   **说明：**查找所有匹配给定正则表达式的键
 >
->   警告：虽然KEYS的速度非常快，但是如果在一个很大的数据库中使用它依然可能造成性能问题，如果你需要从一个数据集中查找特定的KEY，最好还是用Redis的集合结构SETS来代替。
+>   **警告：**虽然KEYS的速度非常快，但是如果在一个很大的数据库中使用它依然可能造成性能问题，如果你需要从一个数据集中查找特定的KEY，最好还是用Redis的集合结构SETS来代替。
 
 ```
 127.0.0.1:6379> KEYS *
@@ -395,11 +395,11 @@ Redis的key值是==二进制安全==的，这意味着可以用任何二进制�
 
 ###### <font color = #1AA3FF>EXISTS</font> key [key ...]
 
->   时间复杂度：O(1)
+>   **时间复杂度：**O(1)
 >
->   说明：判断指定的key（一个或多个）是否存在
+>   **说明：**判断指定的key（一个或多个）是否存在
 >
->   返回：存在的key的数量
+>   **返回：**存在的key的数量
 
 ```
 127.0.0.1:6379> KEYS *
@@ -421,11 +421,11 @@ Redis的key值是==二进制安全==的，这意味着可以用任何二进制�
 
 ###### <font color = #1AA3FF>TYPE</font> key
 
->   时间复杂度：O(1)
+>   **时间复杂度：**O(1)
 >
->   说明：查询指定key所存储的value的存储类型。
+>   **说明：**查询指定key所存储的value的存储类型。
 >
->   返回：`string`, `list`, `set`, `zset` 和 `hash`等不同类型，如果key不存在就返回none
+>   **返回：**`string`, `list`, `set`, `zset` 和 `hash`等不同类型，如果key不存在就返回none
 
 ```
 127.0.0.1:6379> SET k1 stirng
@@ -452,14 +452,14 @@ none
 
 ###### <font color = #1AA3FF>TTL</font> key
 
->时间复杂度：O(1)
+>**时间复杂度：**O(1)
 >
->说明：查询指定key的剩余有效时间。2.6版本之后添加了<font color = #1AA3FF>PTTL</font>命令，以毫秒为单位返回key的剩余时间。
+>**说明：**查询指定key的剩余有效时间。2.6版本之后添加了<font color = #1AA3FF>PTTL</font>命令，以毫秒为单位返回key的剩余时间。
 >
->返回：
+>**返回：**
 >
->-   2.6及以前版本：-1 key不存在或已经过期
->-   2.8及之后版本：-1 key存在且没有设置过期时间  -2 key不存在或已经过期
+>-   2.6及以前版本：`-1` key不存在或已经过期
+>-   2.8及之后版本：`-1` key存在且没有设置过期时间  `-2` key不存在或已经过期
 
 ```
 127.0.0.1:6379> KEYS *
@@ -482,11 +482,11 @@ none
 
 ###### <font color = #1AA3FF>DEL</font> key [key …]
 
->   时间复杂度：O(N)，当删除的key是字符串以外的复杂数据类型时（如`List`、`Set`、`Hash`），删除这个key的时间复杂度是O(1)
+>   **时间复杂度：**O(N)，当删除的key是字符串以外的复杂数据类型时（如`List`、`Set`、`Hash`），删除这个key的时间复杂度是O(1)
 >
->   说明：删除指定的一批key，如果删除的key不存在则直接跳过
+>   **说明：**删除指定的一批key，如果删除的key不存在则直接跳过
 >
->   返回：被删除的keys的数量
+>   **返回：**被删除的keys的数量
 
 ```
 127.0.0.1:6379> KEYS *
@@ -505,9 +505,9 @@ none
 
 ###### <font color = #1AA3FF>RENAME</font> oldKey newKey
 
->   时间复杂度：O(1)
+>   **时间复杂度：**O(1)
 >
->   说明：为指定的key设置新的名称
+>   **说明：**为指定的key设置新的名称
 
 ```
 127.0.0.1:6379> keys *
@@ -526,11 +526,11 @@ OK
 
 ###### <font color = #1AA3FF>EXPIRE</font> key seconds
 
->   时间复杂度：O(1)
+>   **时间复杂度：**O(1)
 >
->   说明：为指定的key设置过期时间（秒），超过时间后该key会被自动删除。在Redis 2.4及以前版本，过期期时间可能不是十分准确，有0-1秒的误差；从Redis 2.6起，过期时间误差缩小到0-1毫秒。2.6.0版本新增了<font color = #1AA3FF>PEXPIRE</font>命令，以毫秒为单位设置key的过期时间。
+>   **说明：**为指定的key设置过期时间（秒），超过时间后该key会被自动删除。在Redis 2.4及以前版本，过期期时间可能不是十分准确，有0-1秒的误差；从Redis 2.6起，过期时间误差缩小到0-1毫秒。2.6.0版本新增了<font color = #1AA3FF>PEXPIRE</font>命令，以毫秒为单位设置key的过期时间。
 >
->   返回：1-设置成功 0-设置不成功（key不存在或不能设置过期时间）
+>   **返回：**`1`-设置成功 `0`-设置不成功（key不存在或不能设置过期时间）
 
 -   过期和持久化
 
@@ -642,11 +642,11 @@ OK
 
 ###### <font color = #1AA3FF>EXPIREAT</font> key timestamp
 
->   时间复杂度：O(1)
+>   **时间复杂度：**O(1)
 >
->   说明：EXPIREAT命令和EXPIRE命令类似，都用于设置key的生存时间，不同在于EXPIREAT命令接受的参数是UNIX时间戳。2.6.0版本新增了<font color = #1AA3FF>PEXPIREAT</font>命令，以毫秒为单位设置key的过期时间。
+>   **说明：**EXPIREAT命令和EXPIRE命令类似，都用于设置key的生存时间，不同在于EXPIREAT命令接受的参数是UNIX时间戳。2.6.0版本新增了<font color = #1AA3FF>PEXPIREAT</font>命令，以毫秒为单位设置key的过期时间。
 >
->   返回：1-设置成功 0-设置不成功（key不存在或不能设置过期时间）
+>   **返回：**`1`-设置成功 `0`-设置不成功（key不存在或不能设置过期时间）
 
 ```
 127.0.0.1:6379> SET k1 v1
@@ -663,11 +663,11 @@ OK
 
 ###### <font color = #1AA3FF>PERSIST</font> key
 
->   时间复杂度：O(1)
+>   **时间复杂度：**O(1)
 >
->   说明：移除设置在给定key上的过期设置
+>   **说明：**移除设置在给定key上的过期设置
 >
->   返回：1-移除成功 0-移除失败（key不存在或没有设置过期时间）
+>   **返回：**`1`-移除成功 `0`-移除失败（key不存在或没有设置过期时间）
 
 
 
@@ -685,21 +685,114 @@ OK
 
 ###### <font color = #1AA3FF>GET</font> key
 
+>   **时间复杂度：**O(1)
+>
+>   **说明：**返回指定的key的value。如果key不存在，返回特殊值nil；如果key的value不是string类型，返回错误信息（GET只支持处理string类型的values）。
+
+```
+127.0.0.1:6379> SET str:k1 abc        # 插入string类型的数据
+OK
+127.0.0.1:6379> LPUSH lis:k2 1 2 3    # 插入list类型的数据
+(integer) 3
+127.0.0.1:6379> keys *
+1) "lis:k2"
+2) "str:k1"
+127.0.0.1:6379> GET str:k1    # 使用get查询存在的string数据
+"abc"
+127.0.0.1:6379> GET str:k2    # 使用get查询不存在的string数据
+(nil)
+127.0.0.1:6379> GET lis:k2    # 使用get查询非string数据
+(error) WRONGTYPE Operation against a key holding the wrong kind of value
+```
+
 
 
 ###### <font color = #1AA3FF>MGET</font> key [key …]
+
+>   **时间复杂度：**O(N)，N代表key的数量
+>
+>   **说明：**返回指定的所有key的value。对于不对应string或者不存在的key，都返回nil（因此本操作从来不会失败）。
+
+```
+127.0.0.1:6379> keys *
+1) "lis:k2"    # list类型
+2) "str:k1"    # string类型
+127.0.0.1:6379> MGET str:k1 str:k2 lis:k1 lis:k2
+1) "abc"
+2) (nil)
+3) (nil)
+4) (nil)
+```
 
 
 
 ###### <font color = #1AA3FF>GETSET</font> key value
 
+>   **时间复杂度：**O(1)
+>
+>   **说明：**将key对应到指定的value，并且返回key原本对应的value。如果key不存在，返回nil；如果key存在但是原本对应的不是string类型的数据，返回错误信息。
 
-
-###### <font color = #1AA3FF>GETRANGE</font> key start end
+```
+127.0.0.1:6379> keys *
+1) "lis:k2"    # list类型
+2) "str:k1"    # string类型
+127.0.0.1:6379> GET str:k1
+"abc"
+127.0.0.1:6379> GETSET str:k1 def    # 正常操作
+"abc"
+127.0.0.1:6379> GET str:k1
+"def"
+127.0.0.1:6379> GET str:k2
+(nil)
+127.0.0.1:6379> GETSET str:k2 666    # 操作不存在的key
+(nil)
+127.0.0.1:6379> GETSET lis:k2 777    # 操作对应非string类型数据的key
+(error) WRONGTYPE Operation against a key holding the wrong kind of value
+127.0.0.1:6379> 127.0.0.1:6379> keys *
+```
 
 
 
 ###### <font color = #1AA3FF>STRLEN</font> key
+
+>   **时间复杂度：**O(1)
+>
+>   **说明**：返回key的string类型value的长度。如果key不存在，返回`0`；如果key存在，但对应非string类型，就返回错误。
+
+```
+127.0.0.1:6379> SET str:k1 abcdefghijklmn    # string类型
+OK
+127.0.0.1:6379> LPUSH lis:k1 a b c d e       # list类型
+(integer) 5
+127.0.0.1:6379> STRLEN str:k1                # key存在，且对应string类型
+(integer) 14
+127.0.0.1:6379> STRLEN str:k2                # key不存在
+(integer) 0
+127.0.0.1:6379> STRLEN lis:k1                # key存在，但对应非string类型
+(error) WRONGTYPE Operation against a key holding the wrong kind of value
+```
+
+
+
+###### <font color = #1AA3FF>GETRANGE</font> key start end
+
+>   **时间复杂度：**O(N)，N是字符串长度，复杂度由最终返回长度决定，但由于通过一个字符串创建子字符串是很容易的，它可以被认为是O(1)。
+>
+>   **说明：**返回key对应的字符串的在指定范围内的子串。可以使用负数表示字符串倒数的位置，所以`-1`表示最后一个字符，`-2`表示倒是第二个字符，以此类推。
+>
+>   **警告：**在2.0之前的版本中这个命令叫做<font color = #1AA3FF>SUBSTR</font>
+
+```
+127.0.0.1:6379> GET k1
+"123456789"
+127.0.0.1:6379> GETRANGE k1 2 6
+"34567"
+127.0.0.1:6379> GETRANGE k1 -8 -4
+"23456"
+127.0.0.1:6379> GETRANGE k1 1 20
+"23456789"
+127.0.0.1:6379> 
+```
 
 
 
@@ -707,41 +800,163 @@ OK
 
 ###### <font color = #1AA3FF>SET</font> key value [<font color = #1AA3FF>EX</font> seconds] [<font color = #1AA3FF>PX</font> milliseconds] [<font color = #1AA3FF>NX</font>|<font color = #1AA3FF>XX</font>]
 
+>   **时间复杂度：**O(1)
+>
+>   **说明：**将key与指定字符串对应。如果key已经对应了一个值，这个操作会直接覆盖原来的值，并且忽略原始类型。命令执行成功之后，之前设置的过期时间都将失效。
+>
+>   从2.6.12版本开始，Redis为`SET`命令增加了一系列选项：
+>
+>   -   `EX` *seconds* – 设置键key的过期时间，单位时秒
+>   -   `PX` *milliseconds* – 设置键key的过期时间，单位时毫秒
+>   -   `NX` – 只有键key不存在的时候才会设置key的值
+>   -   `XX` – 只有键key存在的时候才会设置key的值
+>
+>   **警告：**由于`SET`命令加上上述选项就已经可以完全实现SETNX、SETEX、PSETED等命令的功能，所以在将来的版本中这些命令可能会被Redis抛弃。
+
 
 
 ###### <font color = #1AA3FF>MSET</font> key value [key value …]
+
+>   **时间复杂度：**O(N)，N代表k-v对的数量。
+>
+>   **说明：**同时设置多对k-v对。与`SET`命令相同，如果key已经对应了一个值，这个操作会直接覆盖原来的值，并且忽略原始类型。命令执行成功之后，之前设置的过期时间都将失效。
+>
+>   **警告：**`MSET`命令是原子的，即要么所有k-v设置都成功，要么所有k-v设置都不成功。
+
+```
+127.0.0.1:6379> MSET k1 v1 k2 v2 k3 v3
+OK
+127.0.0.1:6379> KEYS *
+1) "k2"
+2) "k1"
+3) "k3"
+```
+
+
+
+###### <font color = #1AA3FF>SETRANGE</font> key offset value
+
+>   **说明：**覆盖key对应的string的一部分，从指定的offset处开始，覆盖value的长度。如果offset比当前key对应string还要长，那这个string后面就补0以达到offset。不存在的keys被认为是空字符串，所以这个命令可以确保key有一个足够大的字符串，能在offset处设置value。
+>
+>   **警告：**offset最大可以是229-1(536870911),因为redis字符串限制在512M大小。
+
+```
+127.0.0.1:6379> SET k1 123456789
+OK
+127.0.0.1:6379> SETRANGE k1 5 hello
+(integer) 10
+127.0.0.1:6379> GET k1
+"12345hello"
+
+127.0.0.1:6379> SET k2 123456789
+OK
+127.0.0.1:6379> SETRANGE k2 15 hello
+(integer) 20
+127.0.0.1:6379> get k2
+"123456789\x00\x00\x00\x00\x00\x00hello"
+
+127.0.0.1:6379> SETRANGE k3 5 hello
+(integer) 10
+127.0.0.1:6379> GET k3
+"\x00\x00\x00\x00\x00hello"
+127.0.0.1:6379> 
+```
 
 
 
 ###### <font color = #1AA3FF>SETNX</font> key value
 
+>   **时间复杂度：**O(1)
+>
+>   **说明：**在key不存在的前提下，创建key和value的对应关系。SETNX是SET if Not eXists的简写。
+>
+>   返回值：`1`-设置成功 `0`-设置失败
+
 
 
 ###### <font color = #1AA3FF>MSETNX</font> key value [key value …]
+
+>   **时间复杂度：**O(N) ，N为k-v的数量
+>
+>   **说明：**与`MSET`命令相同，`MSETNX`命令是原子的。
+>
+>   **返回值：**`1`-所有k-v设置成功 `0`-设置失败（说明至少有一个key是已经存在的）
 
 
 
 ###### <font color = #1AA3FF>SETEX</font> key seconds value
 
+>   **说明：**设置k-v对应关系，同时设置过期时间。过期时间以秒为单位。这个命令等同于顺序执行以下命令：
+>
+>   ``` 
+>   SET key value
+>   EXPIRE key seconds
+>   ```
+>
+>   `SETEX`命令是原子的，==相比连续执行上述两条命令，更快==
+
 
 
 ###### <font color = #1AA3FF>PSETEX</font> key milliseconds value
+
+>   **说明：**功能与SETEX相同，唯一的区别是过期时间以毫秒为单位，而不是秒。
 
 
 
 ###### <font color = #1AA3FF>INCR</font> key
 
+>   **说明：**对存储在指定`key`的数值执行加1操作。如果指定的key不存在，那么在执行INCR操作之前，会先将它的值设定为`0`；如果指定的key中存储的值不是字符串类型，或者存储的字符串类型不能表示为一个整数，那么执行这个命令时服务器会返回错误信息。
+>
+>   **警告：**
+>
+>   1.  该命令是原子的。
+>   2.  这个操作仅限于64位的有符号整型数据。由于redis并没有一个明确的类型来表示整型数据，所以这个操作是一个字符串操作。执行这个操作的时候，key对应存储的字符串被解析为10进制的**64位有符号整型数据**。事实上，Redis 内部采用整数形式（Integer representation）来存储对应的整数值，所以对该类字符串值实际上是用整数保存，也就不存在存储整数的字符串表示（String representation）所带来的额外消耗。
+
+```
+127.0.0.1:6379> GET k1
+"1"
+127.0.0.1:6379> INCR k1
+(integer) 2
+127.0.0.1:6379> INCR k1
+(integer) 3
+127.0.0.1:6379> INCR k1
+(integer) 4
+127.0.0.1:6379> INCR k1
+(integer) 5
+127.0.0.1:6379> GET k1
+"5"
+```
+
 
 
 ###### <font color = #1AA3FF>INCRBY</font> key increment
+
+>   **说明：**功能与`INCR`命令大体相同，唯一的不同在于本命令可以指定累加的量。
+
+```
+127.0.0.1:6379> GET k1
+"1"
+127.0.0.1:6379> INCR k1
+(integer) 2
+127.0.0.1:6379> GET k1
+"2"
+127.0.0.1:6379> INCRBY k1 10
+(integer) 12
+127.0.0.1:6379> GET k1
+"12"
+```
 
 
 
 ###### <font color = #1AA3FF>DECR</font> key
 
+>   说明：参考INCR命令
 
 
-###### <font color = #1AA3FF>DECR</font> key decrement
+
+###### <font color = #1AA3FF>DECRBY</font> key decrement
+
+>   说明：参考INCRBY命令
 
 #### 3.2.3 数据结构
 
