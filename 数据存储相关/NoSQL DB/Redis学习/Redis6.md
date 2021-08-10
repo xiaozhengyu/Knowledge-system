@@ -126,7 +126,7 @@ NoSQL = <font color = red>Not Only SQL</font>，泛指所有非关系数据。No
     -   去重：利用Set
     -   发布订阅消息系统：pub/sub模式
 
-### 2.2 Redis安装
+### 2.2 Redis安装（手动）
 
 #### 2.2.1 安装版本
 
@@ -263,6 +263,78 @@ redis-server
 -   默认16个数据库，下标从0开始。默认使用0号数据库，使用 select <dbid> 切换数据库。
 
     ![image-20210808162920157](markdown/Redis6.assets/image-20210808162920157.png)
+
+### 2.3 Redis安装（Docker）
+
+教程地址：https://www.runoob.com/docker/docker-install-redis.html
+
+#### 2.3.1 搜索镜像
+
+```
+docker search redis
+```
+
+![image-20210810135526186](markdown/Redis6.assets/image-20210810135526186.png)
+
+#### 2.3.2 拉取镜像
+
+```
+docker pull redis # 拉取最新版本的redis镜像，等用于 docker pull redis:latest
+```
+
+![image-20210810135554568](markdown/Redis6.assets/image-20210810135554568.png)
+
+查看本地镜像：
+
+```
+docker images
+```
+
+![image-20210810135654915](markdown/Redis6.assets/image-20210810135654915.png)
+
+#### 2.3.3 启动容器
+
+```
+# A:新建并启动容器
+docker run -itd --name redis-test -p 6379:6379 redis
+# B:启动容器
+docker start 容器ID或容器名
+```
+
+查看容器运行信息：
+
+```
+docker ps
+```
+
+![image-20210810135829173](markdown/Redis6.assets/image-20210810135829173.png)
+
+>   参数说明：
+>
+>   -   -i：以交互模式运行容器（通常与-t一起使用）
+>   -   -t：为容器重新分配一个伪输入端口（通常与-i一起使用）
+>
+>   -   -d：后台启动容器，并返回容器ID，即启动守护式容器
+>   -   -name：指定容器名称
+>
+>   -   -p 本地端口:容器端口：指定端口映射
+
+#### 2.3.4 使用Redis
+
+调用容器的bash：
+
+```
+docker exec -it redis-test /bin/bash
+```
+
+使用redis-cli：
+
+```
+cd /usr/local/bin/
+redis-cli
+```
+
+![image-20210810141019898](markdown/Redis6.assets/image-20210810141019898.png)
 
 ## 3. 五大常用数据类型
 
