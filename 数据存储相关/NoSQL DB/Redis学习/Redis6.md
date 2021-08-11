@@ -1300,6 +1300,17 @@ Redis集合支持以O(1)的时间复杂度进行删除、添加、测试元素�
 >   **时间复杂度：**O(1)
 >
 >   **说明：**返回集合中元素的数量
+>
+>   ```
+>   127.0.0.1:6379> SADD s1 1 2 3
+>   (integer) 3
+>   127.0.0.1:6379> keys *
+>   1) "s1"
+>   127.0.0.1:6379> SCARD s1    # 当集合存在
+>   (integer) 3
+>   127.0.0.1:6379> SCARD s2    # 当集合不存在
+>   (integer) 0
+>   ```
 
 
 
@@ -1308,6 +1319,15 @@ Redis集合支持以O(1)的时间复杂度进行删除、添加、测试元素�
 >   **时间复杂度：**O(N) where N is the set cardinality.
 >
 >   **说明：**返回集合中所有的元素
+>
+>   ```
+>   127.0.0.1:6379> SADD s1 1 2 3
+>   (integer) 3
+>   127.0.0.1:6379> SMEMBERS s1
+>   1) "1"
+>   2) "2"
+>   3) "3"
+>   ```
 
 
 
@@ -1318,6 +1338,19 @@ Redis集合支持以O(1)的时间复杂度进行删除、添加、测试元素�
 >   **说明：**判断集合中是否存在member元素
 >
 >   **返回值：**`0`- 不存在（或key不存在）  `1`存在
+>
+>   ```
+>   127.0.0.1:6379> SMEMBERS s1
+>   1) "1"
+>   2) "2"
+>   3) "3"
+>   127.0.0.1:6379> SISMEMBER s1 1
+>   (integer) 1
+>   127.0.0.1:6379> SISMEMBER s1 4    # member不存在
+>   (integer) 0
+>   127.0.0.1:6379> SISMEMBER s2 1    # key不存在
+>   (integer) 0
+>   ```
 
 
 
@@ -1472,6 +1505,140 @@ Redis Hashes是字符串字段和字符串值之间的映射，所以它们是�
 一个拥有少量（100个左右）字段的Hash只需要很少的空间来存储，所有你可以在一个小型的Redis实例中存储上百万的对象。
 
 #### 3.5.2 常用命令
+
+##### 查询类
+
+###### <font color = #1AA3FF>HKEYS</font> key
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>HVALS</font> key
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>HLEN</font> key
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>HSTRLEN</font> key field
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>HEXISTS</font> key field
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>HGET</font> key field
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>HMGET</font> key field [field …]
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>HGETALL</font> key
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+##### 操作类
+
+###### <font color = #1AA3FF>HSET</font> key field value
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>HMSET</font> key field value [field value …]
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>HSETNX</font> key field value
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>HDEL</font> key field [field …]
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>HINCRBY</font> key field increment
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
 
 #### 3.5.3 数据结构
 
