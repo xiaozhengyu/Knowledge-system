@@ -1504,87 +1504,199 @@ Redis Hashes是字符串字段和字符串值之间的映射，所以它们是�
 
 一个拥有少量（100个左右）字段的Hash只需要很少的空间来存储，所有你可以在一个小型的Redis实例中存储上百万的对象。
 
+```json
+"key":{
+        "field1":value1,
+        "field2":value2,
+        "field3":value3
+}
+```
+
 #### 3.5.2 常用命令
 
 ##### 查询类
 
 ###### <font color = #1AA3FF>HKEYS</font> key
 
->   **时间复杂度：**
+>   **时间复杂度：**O(N) where N is the size of the hash.
 >
->   **说明：**
+>   **说明：**返回指定哈希集中所有字段的名称。
 >
->   **返回值：**
+>   **返回值：**哈希集中的所有字段列表，当key指定的哈希集不存在时返回空列表。
+>
+>   ```
+>   127.0.0.1:6379> HSET user name xiaozy
+>   (integer) 1
+>   127.0.0.1:6379> HSET user age 24
+>   (integer) 1
+>   127.0.0.1:6379> HSET user sex m
+>   (integer) 1
+>   127.0.0.1:6379> HKEYS user
+>   1) "name"
+>   2) "age"
+>   3) "sex"
+>   127.0.0.1:6379> HKEYS user2
+>   (empty array)
+>   ```
 
 
 
 ###### <font color = #1AA3FF>HVALS</font> key
 
->   **时间复杂度：**
+>   **时间复杂度：**O(N) where N is the size of the hash.
 >
->   **说明：**
+>   **说明：**返回指定哈希集中所有字段对应的值。
 >
->   **返回值：**
+>   **返回值：**哈希集中所有字段对应的值，当key指定的哈希集不存在时返回空列表。
+>
+>   ```
+>   127.0.0.1:6379> HSET user name xiaozy
+>   (integer) 1
+>   127.0.0.1:6379> HSET user age 24
+>   (integer) 1
+>   127.0.0.1:6379> HSET user sex m
+>   (integer) 1
+>   127.0.0.1:6379> HVALS user
+>   1) "xiaozy"
+>   2) "24"
+>   3) "m"
+>   127.0.0.1:6379> HVALS user2
+>   (empty array)
+>   ```
 
 
 
 ###### <font color = #1AA3FF>HLEN</font> key
 
->   **时间复杂度：**
+>   **时间复杂度：**O(1)
 >
->   **说明：**
+>   **说明：**返回指定哈希集包含的字段的数量。
 >
->   **返回值：**
+>   **返回值：**指定哈希集包含的字段的数量，当key指定的哈希集不存在时返回0。
+>
+>   ```
+>   127.0.0.1:6379> HKEYS user
+>   1) "name"
+>   2) "age"
+>   3) "sex"
+>   127.0.0.1:6379> HLEN user
+>   (integer) 3
+>   127.0.0.1:6379> HLEN user2
+>   (integer) 0
+>   ```
 
 
 
 ###### <font color = #1AA3FF>HSTRLEN</font> key field
 
->   **时间复杂度：**
+>   **时间复杂度：**O(1)
 >
->   **说明：**
+>   **说明：**返回指定哈希集包含的指定字段对应的value的字符串长度。如果hash或field不存在，返回0。
 >
->   **返回值：**
+>   ```
+>   127.0.0.1:6379> HKEYS user    # 列出hash包含的所有field
+>   1) "name"
+>   2) "age"
+>   3) "sex"
+>   127.0.0.1:6379> HVALS user    # 列出hash包含的所有field对应的value
+>   1) "xiaozy"
+>   2) "24"
+>   3) "m"
+>   127.0.0.1:6379> HSTRLEN user name
+>   (integer) 6
+>   127.0.0.1:6379> HSTRLEN user age
+>   (integer) 2
+>   127.0.0.1:6379> HSTRLEN user sex
+>   (integer) 1
+>   127.0.0.1:6379> HSTRLEN user xxx
+>   (integer) 0
+>   ```
 
 
 
 ###### <font color = #1AA3FF>HEXISTS</font> key field
 
->   **时间复杂度：**
+>   **时间复杂度：**O(1)
 >
->   **说明：**
+>   **说明：**判断hash中是否包含指定的field
 >
->   **返回值：**
+>   **返回值：**`0`-指定的hash不存在或hash中不包含指定的field `1`-存在指定的field
 
 
 
 ###### <font color = #1AA3FF>HGET</font> key field
 
->   **时间复杂度：**
+>   **时间复杂度：**O(1)
 >
->   **说明：**
+>   **说明：**获取指定hash指定field对应的value，若hash不存在或field不存在返回nil
 >
->   **返回值：**
+>   ```
+>   127.0.0.1:6379> HKEYS user
+>   1) "name"
+>   2) "age"
+>   3) "sex"
+>   127.0.0.1:6379> HGET user name
+>   "xiaozy"
+>   127.0.0.1:6379> HGET user age
+>   "24"
+>   127.0.0.1:6379> HGET user sex
+>   "m"
+>   ```
 
 
 
 ###### <font color = #1AA3FF>HMGET</font> key field [field …]
 
->   **时间复杂度：**
+>   **时间复杂度：**O(N) where N is the number of fields being requested.
 >
->   **说明：**
+>   **说明：**获取指定hash指定field对应的value。对于不存在的field返回nil。
 >
->   **返回值：**
+>   ```
+>   127.0.0.1:6379> HKEYS user
+>   1) "name"
+>   2) "age"
+>   3) "sex"
+>   127.0.0.1:6379> HMGET user name age sex aaa bbb    # 不存在aaa、bbb
+>   1) "xiaozy"
+>   2) "24"
+>   3) "m"
+>   4) (nil)
+>   5) (nil)
+>   127.0.0.1:6379> HMGET user2 name age sex aaa bbb    # 不存在user2对用的hash
+>   1) (nil)
+>   2) (nil)
+>   3) (nil)
+>   4) (nil)
+>   5) (nil)
+>   ```
 
 
 
 ###### <font color = #1AA3FF>HGETALL</font> key
 
->   **时间复杂度：**
+>   **时间复杂度：**O(N) where N is the size of the hash.
 >
->   **说明：**
+>   **说明：**返回 key 指定的哈希集中所有的字段和值。返回值中，每个字段名的下一个是它的值，所以返回值的长度是哈希集大小的两倍。当 key 指定的哈希集不存在时返回空列表。
 >
->   **返回值：**
+>   ```
+>   127.0.0.1:6379> HKEYS user
+>   1) "name"
+>   2) "age"
+>   3) "sex"
+>   127.0.0.1:6379> HVALS user
+>   1) "xiaozy"
+>   2) "24"
+>   3) "m"
+>   127.0.0.1:6379> HGETALL user
+>   1) "name"
+>   2) "xiaozy"
+>   3) "age"
+>   4) "24"
+>   5) "sex"
+>   6) "m"
+>   127.0.0.1:6379> HGETALL user2
+>   (empty array)
+>   ```
 
 
 
@@ -1592,51 +1704,66 @@ Redis Hashes是字符串字段和字符串值之间的映射，所以它们是�
 
 ###### <font color = #1AA3FF>HSET</font> key field value
 
->   **时间复杂度：**
+>   **时间复杂度：**O(1)
 >
->   **说明：**
+>   **说明：**设置指定hash集指定field对应的value。
 >
->   **返回值：**
+>   **返回值：**`0`-如果field已经存在 `1`-如果field尚不存在
+>
+>   ```
+>   127.0.0.1:6379> HSET user name xiaozy
+>   (integer) 1
+>   127.0.0.1:6379> HSET user name zhangsan
+>   (integer) 0
+>   ```
 
 
 
 ###### <font color = #1AA3FF>HMSET</font> key field value [field value …]
 
->   **时间复杂度：**
+>   **时间复杂度：**O(N) where N is the number of fields being set.
 >
->   **说明：**
+>   **说明：**向指定hash集一次性设置多个field-value对。
 >
->   **返回值：**
+>   ```
+>   127.0.0.1:6379> HMSET user name xiaozy age 24 sex m
+>   OK
+>   127.0.0.1:6379> HGETALL user
+>   1) "name"
+>   2) "xiaozy"
+>   3) "age"
+>   4) "24"
+>   5) "sex"
+>   6) "m"
+>   ```
 
 
 
 ###### <font color = #1AA3FF>HSETNX</font> key field value
 
->   **时间复杂度：**
+>   **时间复杂度：**O(1)
 >
->   **说明：**
->
->   **返回值：**
+>   **说明：**在指定hash集的指定field不存在的前提下，设置该field和value的对应关系。
 
 
 
 ###### <font color = #1AA3FF>HDEL</font> key field [field …]
 
->   **时间复杂度：**
+>   **时间复杂度：**O(N) N是被删除的字段数量
 >
->   **说明：**
+>   **说明：**从指定hash集中移除指定field，不存在的field将被忽略。
 >
->   **返回值：**
+>   **返回值：**成功移除的field的数量。
 
 
 
 ###### <font color = #1AA3FF>HINCRBY</font> key field increment
 
->   **时间复杂度：**
+>   **时间复杂度：**O(1)
 >
->   **说明：**
+>   **说明：**增加指定hash集合指定field对应的value的值。支持的值的范围限定在 64位 有符号整数。
 >
->   **返回值：**
+>   **返回值：**操作完成后该field对应的value
 
 
 
