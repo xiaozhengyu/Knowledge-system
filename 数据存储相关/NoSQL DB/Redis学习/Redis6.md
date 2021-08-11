@@ -113,6 +113,8 @@ NoSQL = <font color = red>Not Only SQL</font>，泛指所有非关系数据。No
 
 ## 2. Redis 概述、安装
 
+Redis = REmote DIctionary Server，Redis是一个开源的使用ANSI C语言编写、遵守BSD协议、支持网络、可基于内存亦可持久化的日志型、Key-Value数据库，并提供多种语言的API。
+
 ### 2.1 应用场景
 
 -   高速缓存
@@ -960,6 +962,8 @@ OK
 
 #### 3.2.3 数据结构
 
+---
+
 ### 3.3 列表（List）
 
 #### 3.3.1 简介
@@ -972,7 +976,312 @@ Redis列表支持以O(1)的时间复杂度操作列表两端的数据，但是�
 
 #### 3.3.2 常用命令
 
+##### 查询类
+
+###### <font color = #1AA3FF>LINDEX</font> key index
+
+>   **时间复杂度：**O(N) where N is the number of elements to traverse to get to the element at index. This makes asking for the first or the last element of the  list O(1).
+>
+>   **说明：**根据索引查询列表中给的元素，索引从0开始。负数索引用于指定从列表尾部开始索引的元素，在这种情况下，-1 表示最后一个元素。如果索引超出列表的范围，返回nil。
+
+```
+127.0.0.1:6379> LPUSH lis 6 5 4 3 2 1
+(integer) 6
+127.0.0.1:6379> LINDEX lis 0
+"1"
+127.0.0.1:6379> LINDEX lis 1
+"2"
+127.0.0.1:6379> LINDEX lis -1
+"6"
+127.0.0.1:6379> LINDEX lis -2
+"5"
+127.0.0.1:6379> LINDEX lis 6
+(nil)
+```
+
+
+
+###### <font color = #1AA3FF>LRANGE</font> key start stop
+
+>   **时间复杂度：**O(S+N) where S is the distance of start offset  from HEAD for small lists, from nearest end (HEAD or TAIL) for large  lists; and N is the number of elements in the specified range.
+>
+>   **说明：**查询列表在指定范围内的元素。与`LINDEX`命令中的index参数相同，start和stop从0开始，且允许为负数。当下标超过list范围的时候不会产生error。 当start比list的尾部下标大的时候，会返回一个空列表；当stop比list的实际尾部大的时候，Redis会当它是最后一个元素的下标。
+
+```
+127.0.0.1:6379> LPUSH lis 6 5 4 3 2 1
+(integer) 6
+127.0.0.1:6379> LRANGE lis 0 5
+1) "1"
+2) "2"
+3) "3"
+4) "4"
+5) "5"
+6) "6"
+127.0.0.1:6379> LRANGE lis 5 10
+1) "6"
+127.0.0.1:6379> LRANGE lis 6 10
+(empty array)
+```
+
+
+
+###### <font color = #1AA3FF>LLEN</font> key
+
+>   **时间复杂度：**O(1)
+>
+>   **说明：**返回列表的长度。如果key不存在，那么返回0；如果key存在，但对应的value不是一个列表，返回error。
+
+```
+127.0.0.1:6379> LPUSH lis1 3 2 1
+(integer) 3
+127.0.0.1:6379> SET str1 hello
+OK
+127.0.0.1:6379> LLEN lis1
+(integer) 3
+127.0.0.1:6379> LLEN lis2
+(integer) 0
+127.0.0.1:6379> LLEN str1
+(error) WRONGTYPE Operation against a key holding the wrong kind of value
+```
+
+
+
+##### 操作类
+
+###### <font color = #1AA3FF>LPUSH</font> key value [value …]
+
+>   **时间复杂度：**O(1)
+>
+>   **说明：**从列表==头部==依次压入若干元素。如果可以不存在，那么redis会在进行push操作前先创建一个空列表；如果key存在，但对应的value不是一个列表，那么返回err。
+>
+>   **返回值：**完成push操作后列表的长度
+>
+>   ![image-20210811135355987](markdown/Redis6.assets/image-20210811135355987.png)
+
+
+
+###### <font color = #1AA3FF>RPUSH</font> key value [value …]
+
+>   **说明：**功能与`LPUSH`命令基本相同，不同之处在于，`RPUSH`命令将从列表==尾部==压入元素。
+
+
+
+###### <font color = #1AA3FF>LPUSHX</font> key value
+
+>   **时间复杂度：**O(1)
+>
+>   **说明：**在key存在且对应着一个list的前提下，从ist的==头部==压入元素。
+>
+>   **返回值：**完成push操作后列表的长度
+
+```
+127.0.0.1:6379> keys *
+1) "k1"
+127.0.0.1:6379> LPUSHX k1 1
+(integer) 7
+127.0.0.1:6379> LPUSHX k2 1
+(integer) 0
+```
+
+
+
+###### <font color = #1AA3FF>RPUSHX</font> key value
+
+>   **说明：**功能与`LPUSHX`命令基本相同，不同之处在于，`RPUSHX`命令将从列表的尾部==压入==元素。
+
+
+
+###### <font color = #1AA3FF>LSET</font> key index value
+
+>   **时间复杂度：**O(N) where N is the length of the list. Setting either the first or the last element of the list is O(1).
+>
+>   **说明：**修改列表指定位置的元素。如果index超过列表范围将返回一个error。
+
+```
+127.0.0.1:6379> LPUSH lis1 3 2 1
+(integer) 3
+127.0.0.1:6379> LINDEX lis1 0
+"1"
+127.0.0.1:6379> LSET lis1 0 6
+OK
+127.0.0.1:6379> LINDEX lis1 0
+"6"
+127.0.0.1:6379> LSET lis1 3 6
+(error) ERR index out of range
+```
+
+
+
+###### <font color = #1AA3FF>LINSERT</font> key <font color = #1AA3FF>BEFORE</font>|<font color = #1AA3FF>AFTER</font> pivot value
+
+>   **时间复杂度：**O(N) where N is the number of elements to  traverse before seeing the value pivot. This means that inserting  somewhere on the left end on the list (head) can be considered O(1) and  inserting somewhere on the right end (tail) is O(N).
+>
+>   **说明：**在列表中的pivot元素之前插入value。如果key不存在，不执行任何操作；如果key存在但对应的不是list，返回error；如果pivot不存在，返回-1
+>
+>   **返回值：**完成操作后列表的长度
+
+```
+127.0.0.1:6379> LPUSH lis 11 22 33 44 55    # 准备一个list
+(integer) 5
+127.0.0.1:6379> LRANGE lis 0 -1
+1) "55"
+2) "44"
+3) "33"
+4) "22"
+5) "11"
+127.0.0.1:6379> LINSERT lis BEFORE 33 aa    # 在list的33元素之前插入若干元素
+(integer) 6
+127.0.0.1:6379> LINSERT lis BEFORE 33 bb
+(integer) 7
+127.0.0.1:6379> LINSERT lis BEFORE 33 cc
+(integer) 8
+127.0.0.1:6379> LRANGE lis 0 -1    # 查看插入结果
+1) "55"
+2) "44"
+3) "aa"    # aa
+4) "bb"    # bb
+5) "cc"    # cc
+6) "33"
+7) "22"
+8) "11"
+127.0.0.1:6379> LINSERT lis BEFORE 99 bb    # 当pivot不存在
+(integer) -1
+```
+
+
+
+###### <font color = #1AA3FF>LPOP</font> key [count]
+
+>   **时间复杂度：**O(1)
+>
+>   **说明：**从列表头部弹出一个或多个元素，如果key不存在返回nil。
+
+```
+127.0.0.1:6379> LRANGE lis 0 -1
+1) "55"
+2) "44"
+3) "aa"
+4) "bb"
+5) "cc"
+6) "33"
+7) "22"
+8) "11"
+127.0.0.1:6379> LPOP lis
+"55"
+127.0.0.1:6379> LPOP lis 2
+1) "44"
+2) "aa"
+```
+
+
+
+###### <font color = #1AA3FF>RPOP</font> key [count]
+
+>   **说明：**与`LPOP`命令功能基本相同，不同在于从尾部弹出元素。如果给定 key 内至少有一个非空列表，那么弹出遇到的第一个非空列表的头元素，并和被弹出元素所属的列表的名字 key 一起，组成结果返回给调用者。
+
+
+
+###### <font color = #1AA3FF>BLPOP</font> key [key …] timeout
+
+>   **说明：**`LPOP`的阻塞版本。
+
+
+
+###### <font color = #1AA3FF>BRPOP</font> key [key …] timeout
+
+>   参照`BLPOP`
+
+
+
+###### <font color = #1AA3FF>RPOPLPUSH</font> source destination
+
+>   **说明：**原子性地返回并移除存储在 source 的列表的最后一个元素（列表尾部元素）， 并把该元素放入存储在 destination 的列表的第一个元素位置（列表头部）。
+>
+>   如果 source 不存在，那么会返回 nil 值，并且不会执行任何操作。 如果 source 和 destination 是同样的，那么这个操作等同于移除列表最后一个元素并且把该元素放在列表头部， 所以这个命令也可以当作是一个旋转列表的命令。
+>
+>   ![image-20210811145136479](markdown/Redis6.assets/image-20210811145136479.png)
+
+```
+127.0.0.1:6379> LRANGE lis1 0 -1
+1) "1"
+2) "2"
+3) "3"
+127.0.0.1:6379> RPOPLPUSH lis1 lis2    # 转移列表
+"3"
+127.0.0.1:6379> RPOPLPUSH lis1 lis2
+"2"
+127.0.0.1:6379> RPOPLPUSH lis1 lis2
+"1"
+127.0.0.1:6379> LRANGE lis1 0 -1
+(empty array)
+127.0.0.1:6379> LRANGE lis2 0 -1
+1) "1"
+2) "2"
+3) "3"
+127.0.0.1:6379> RPOPLPUSH lis2 lis2    # 旋转列表
+"3"
+127.0.0.1:6379> LRANGE lis2 0 -1
+1) "3"
+2) "1"
+3) "2"
+```
+
+
+
+###### <font color = #1AA3FF>BRPOPLPUSH</font> source destination
+
+>   `RPOPLPUSH`的阻塞版本。
+
+
+
+###### <font color = #1AA3FF>LREM</font> key count value
+
+>   **时间复杂度：**O(N) where N is the length of the list.
+>
+>   **说明：**从存于 key 的列表里移除前 count 次出现的值为 value 的元素。 如果list里没有存在key就会被当作空list处理，所以当 key 不存在的时候，这个命令会返回 0。这个 count 参数通过下面几种方式影响这个操作：
+>
+>   -   count > 0: 从头往尾移除值为 value 的元素。
+>   -   count < 0: 从尾往头移除值为 value 的元素。
+>   -   count = 0: 移除所有值为 value 的元素。
+>
+>   比如， LREM list -2 “hello” 会从存于 list 的列表里移除最后两个出现的 “hello”。
+>
+>   **返回值：**被移除的元素的个数
+
+
+
+###### <font color = #1AA3FF>LTRIM</font> key start stop
+
+>   **时间复杂度：**O(N) where N is the number of elements to be removed by the operation.
+>
+>   **说明：**修剪list，使list只保留指定范围内的元素。start和stop从0开始，且允许为负数。
+>
+>   超过范围的下标并不会产生错误：如果 start 超过列表尾部，或者 start > end，结果会是列表变成空表（即该 key 会被移除）。 如果 end 超过列表尾部，Redis 会将其当作列表的最后一个元素。
+>
+>   `LTRIM` 的一个常见用法是和 LPUSH、RPUSH一起使用。 例如：
+>
+>   -   LPUSH mylist someelement
+>   -   LTRIM mylist 0 99
+>
+>   这一对命令会将一个新的元素 push 进列表里，并保证该列表不会增长到超过100个元素。这个是很有用的，比如当用 Redis 来存储日志。 需要特别注意的是，当用这种方式来使用 LTRIM 的时候，操作的复杂度是 O(1) ， 因为平均情况下，每次只有一个元素会被移除。
+
+```
+127.0.0.1:6379> LPUSH lis 0 1 2 3 4 5 6 7 8 9
+(integer) 10
+127.0.0.1:6379> LTRIM lis 3 6
+OK
+127.0.0.1:6379> LRANGE lis 0 -1
+1) "6"
+2) "5"
+3) "4"
+4) "3"
+```
+
+
+
 #### 3.3.3 数据结构
+
+---
 
 ### 3.4 集合（Set）
 
@@ -984,7 +1293,11 @@ Redis集合支持以O(1)的时间复杂度进行删除、添加、测试元素�
 
 #### 3.4.2 常用命令
 
+
+
 #### 3.4.3 数据结构
+
+---
 
 ### 3.5 哈希（Hash）
 
@@ -997,6 +1310,8 @@ Redis Hashes是字符串字段和字符串值之间的映射，所以它们是�
 #### 3.5.2 常用命令
 
 #### 3.5.3 数据结构
+
+---
 
 ### 3.6 有序集合（ZSet）
 
