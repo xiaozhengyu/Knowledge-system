@@ -1781,4 +1781,34 @@ Redis有序集合与Redis集合类似，都是不相同的字符串的合集。�
 
 #### 3.6.2 常用命令
 
+##### 查询类
+
+ZCARD key
+
+ZCOUNT key min max
+
+ZLENXCOUNT key min max
+
+ZRANGE key start stop [WITHSCORES]
+
+ZRANGEBYLEX key min max [LIMIT offset count] 
+
+
+
+
+
+##### 操作类
+
+ZADD key [NX|XX] [CH] [INCR] score member [score member ...] 
+
+ZINCREBY key increment member
+
+ZPOPMAX key [count]
+
+ZPOPMIN key [count]
+
+
+
+
+
 #### 3.6.3 数据结构
