@@ -1293,6 +1293,170 @@ Redis集合支持以O(1)的时间复杂度进行删除、添加、测试元素�
 
 #### 3.4.2 常用命令
 
+##### 查询类
+
+###### <font color = #1AA3FF>SCARD</font> key
+
+>   **时间复杂度：**O(1)
+>
+>   **说明：**返回集合中元素的数量
+
+
+
+###### <font color = #1AA3FF>SMENBERS</font> key
+
+>   **时间复杂度：**O(N) where N is the set cardinality.
+>
+>   **说明：**返回集合中所有的元素
+
+
+
+###### <font color = #1AA3FF>SISMEMBER</font> key member
+
+>   **时间复杂度：**O(1)
+>
+>   **说明：**判断集合中是否存在member元素
+>
+>   **返回值：**`0`- 不存在（或key不存在）  `1`存在
+
+
+
+###### <font color = #1AA3FF>SRANDMEMBER</font> key [count]
+
+>   **时间复杂度：**Without the count argument O(1), otherwise O(N) where N is the absolute value of the passed count.
+>
+>   **说明：**随机返回集合中的若干个元素。如果未指定count，那么随机返回key集合中的一个元素。
+
+
+
+###### <font color = #1AA3FF>SDIFF</font> key [key …]
+
+>   **时间复杂度：**O(1)
+>
+>   **说明：**返回集合的差集。不存在的key当作空集处理。
+
+
+
+###### <font color = #1AA3FF>SDIFFSTORE</font> destination key [key …]
+
+>   **时间复杂度：**O(1)
+>
+>   **说明：**将集合的差集存储到destination
+
+
+
+###### <font color = #1AA3FF>SINTER</font> key [key …]
+
+>   **时间复杂度：**O(1)
+>
+>   **说明：**返回集合的交集。不存在的key当作空集处理。
+
+
+
+###### <font color = #1AA3FF>SINTERSTORE</font> destination key [key …]
+
+>   **时间复杂度：**O(1)
+>
+>   **说明：**将集合的交集存储到destination
+
+
+
+###### <font color = #1AA3FF>SUNION</font> key [key …]
+
+>   **时间复杂度：**O(1)
+>
+>   **说明：**返回集合的并集。不存在的key当作空集处理。
+
+
+
+###### <font color = #1AA3FF>SUNIONSTORE</font> key [key …]
+
+>   **时间复杂度：**O(1)
+>
+>   **说明：**将集合的并集存储到destination
+
+
+
+##### 操作类
+
+###### <font color = #1AA3FF>SADD</font> key member [member …]
+
+>   **时间复杂度：**O(N) where N is the number of members to be added.
+>
+>   **说明：**添加若干个成员到指定的集合中。如果key对应的value不是set类型，返回error。
+>
+>   **返回值：**返回新成功添加到集合里元素的数量，不包括已经存在于集合中的元素。
+
+
+
+###### <font color = #1AA3FF>SREM</font> key member [member]
+
+>   **时间复杂度：**O(N) where N is the number of members to be removed.
+>
+>   **说明：**从集合删除指定的元素。
+>
+>   **返回值：**如果删除成功，返回删除的元素的个数；如果key对应的不是一个set，返回error。
+
+```
+127.0.0.1:6379> SMEMBERS set2
+1) "1"
+2) "2"
+3) "3"
+127.0.0.1:6379> SREM set2 1 2
+(integer) 2
+127.0.0.1:6379> SMEMBERS set2
+1) "3"
+```
+
+
+
+###### <font color = #1AA3FF>SPOP</font> key [count]
+
+>   **时间复杂度：**O(1)
+>
+>   **说明：**从集合中随机删除若干个成员。
+>
+>   **返回值：**被删除的元素，如果key不存在返回nil。
+
+```
+127.0.0.1:6379> SADD set1 a b c
+(integer) 3
+127.0.0.1:6379> SMEMBERS set1
+1) "a"
+2) "c"
+3) "b"
+127.0.0.1:6379> SPOP set1 2
+1) "c"
+2) "a"
+127.0.0.1:6379> SMEMBERS set1
+1) "b"
+```
+
+
+
+###### <font color = #1AA3FF>SMOVE</font> source destination member
+
+>   **说明：**将member从source集合移动到destination集合。
+>
+>   **返回值：**如果元素移动成功，返回1；如果元素移动失败，返回0；如果destination不是集合，返回error。
+
+```
+127.0.0.1:6379> SADD set1 1 2 3
+(integer) 3
+127.0.0.1:6379> SMOVE set1 set2 1
+(integer) 1
+127.0.0.1:6379> SMOVE set1 set2 2
+(integer) 1
+127.0.0.1:6379> SMOVE set1 set2 3
+(integer) 1
+127.0.0.1:6379> SMEMBERS set1
+(empty array)
+127.0.0.1:6379> SMEMBERS set2
+1) "1"
+2) "2"
+3) "3"
+```
+
 
 
 #### 3.4.3 数据结构
