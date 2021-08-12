@@ -111,6 +111,10 @@ NoSQL = <font color = red>Not Only SQL</font>，泛指所有非关系数据。No
 3.  MongoDB
     -   文档型数据库
 
+
+
+
+
 ## 2. Redis 概述、安装
 
 Redis = REmote DIctionary Server，Redis是一个开源的使用ANSI C语言编写、遵守BSD协议、支持网络、可基于内存亦可持久化的日志型、Key-Value数据库，并提供多种语言的API。
@@ -127,6 +131,32 @@ Redis = REmote DIctionary Server，Redis是一个开源的使用ANSI C语言编�
     -   计数器、秒杀：原子性
     -   去重：利用Set
     -   发布订阅消息系统：pub/sub模式
+
+#### 2.1.1 单线程 + I/O多路复用
+
+Redis使用了单线程架构和I/O多路复用模型来实现高性能的内存数据库服务。
+
+所有的命令在一个队列里排队等待被执行，不存在多个命令被同时执行的情况。
+
+![img](https://img.php.cn/upload/article/000/054/025/41aaadeca98e14640948bdba8bc4ba12-2.png)
+
+为什么单线程还能这么快？
+
+1.   纯内存访问
+
+     Redis将所有数据放在内存中，内存的响应时间长约100纳秒，这是Redis达到每秒万级别访问的==重要基础==。
+
+2.   非阻塞I/O
+
+     Redis使用epoll作为I/O多路复用技术的实现，再加上Redis自身的事件处理模型将epoll中的连接、读写、关闭都转换为事件，不在网络I/O上浪费过多的时间。
+
+     ![img](https://img.php.cn/upload/article/000/054/025/41aaadeca98e14640948bdba8bc4ba12-3.png)
+
+3.   单线程避免了线程切换和竟态产生的消耗
+
+     单线程带来几个好处：第一，单线程简化数据结构和算法的实现。第二，单线程避免了线程切换和竟态产生的消耗。但是对于每个命令的执行命令是有要求的，如果某个命令执行时间过长，就会造成其他命令的阻塞，Redis是面向快速执行场景的数据库，单线程是理解Redis的核心 
+
+
 
 ### 2.2 Redis安装（手动）
 
@@ -319,7 +349,7 @@ docker ps
 >   -   -d：后台启动容器，并返回容器ID，即启动守护式容器
 >   -   -name：指定容器名称
 >
->   -   -p 本地端口:容器端口：指定端口映射
+>   -   -p：本地端口:容器端口：指定端口映射
 
 #### 2.3.4 使用Redis
 
@@ -344,6 +374,10 @@ redis-cli
 docker stop 容器ID或容器名
 ```
 
+
+
+
+
 ## 3. 五大常用数据类型
 
 Redis官网资料：
@@ -355,6 +389,19 @@ Redis官网资料：
 -   数据类型
     -   [数据类型（英文）](https://redis.io/topics/data-types-intro)
     -   [数据类型（中文）](http://www.redis.cn/topics/data-types.html)
+
+五种常用的数据结构：
+
+<img src="https://img.php.cn/upload/article/000/054/025/4004304cd47b8c9f9aa2f950c3c2412d-0.png" alt="img" style="zoom: 67%;" />
+
+每种数据结构的底层都有两种以上的内部编码实现，Redis会在不同的应用场景自动选择合适的内部编码，通过下 `OBJECT ENCODING key`命令可以常看指定key对应的数据结构当前使用的内部编码。
+
+Redis这样设计有两种好处：
+
+1.   改变内部编码对外部的数据结构以及操作命令没有影响
+2.   各种内部编码可以在合适的场景发挥各自的优势，例如，ziplist比较节省内存，但是在列表元素比较多的情况下，性能会有所下降，这时Redis会根据配置选项将列表类型的内部实现转换为linkedlist。
+
+<img src="https://img.php.cn/upload/article/000/054/025/41aaadeca98e14640948bdba8bc4ba12-1.png" alt="img" style="zoom:67%;" />
 
 ### 3.1 键（key）
 
@@ -960,7 +1007,11 @@ OK
 
 >   说明：参考INCRBY命令
 
+
+
 #### 3.2.3 数据结构
+
+
 
 ---
 
@@ -2072,3 +2123,14 @@ Redis有序集合与Redis集合类似，都是不相同的字符串的合集。�
 
 
 #### 3.6.3 数据结构
+
+
+
+
+
+
+
+## 参考资料
+
+1.   [尚硅谷2021Redis视频教程](https://www.bilibili.com/video/BV1Rv41177Af)
+2.   [PHP中文网-5种Redis数据结构详解](https://www.php.cn/php-weizijiaocheng-388126.html)
