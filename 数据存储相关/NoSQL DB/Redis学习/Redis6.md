@@ -1783,31 +1783,291 @@ Redis有序集合与Redis集合类似，都是不相同的字符串的合集。�
 
 ##### 查询类
 
-ZCARD key
+###### <font color = #1AA3FF>ZCARD</font> key
 
-ZCOUNT key min max
-
-ZLENXCOUNT key min max
-
-ZRANGE key start stop [WITHSCORES]
-
-ZRANGEBYLEX key min max [LIMIT offset count] 
+>   **时间复杂度：**O(1)
+>
+>   **说明：**返回有序集合包含的成员的个数，如果指定的key不存在则返回0。
 
 
+
+###### <font color = #1AA3FF>ZCOUNT</font> key min max
+
+>   **时间复杂度：**O(log(N)) with N being the number of elements in the sorted set.
+>
+>   **说明：**统计 min <= score <= max 的成员的数量。
+
+
+
+###### <font color = #1AA3FF>ZSCORE</font> key member
+
+>   **时间复杂度：**O(1)
+>
+>   **说明：**获取成员的分数，如果集合不存在或member不是集合的成员，返回nil。
+
+
+
+###### <font color = #1AA3FF>ZLENXCOUNT</font> key min max
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>ZRANGE</font> key start stop [<font color = #1AA3FF>WITHSCORES</font>]
+
+>   **时间复杂度：**O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements returned.
+>
+>   **说明：**将集合元素按score==升序排序==（如果得分相同，将按字典排序），返回集合在指定范围内的成员。可以传递`WITHSCORES`选项，以便将元素的分数与元素一起返回。
+>
+>   ```
+>   127.0.0.1:6379> ZADD set 0 a 1 b 2 c 3 d 4 e 5 f 6 g 7 h 8 i 9 j
+>   (integer) 10
+>   127.0.0.1:6379> ZRANGE set 0 5
+>   1) "a"
+>   2) "b"
+>   3) "c"
+>   4) "d"
+>   5) "e"
+>   6) "f"
+>   127.0.0.1:6379> ZRANGE set 0 5 WITHSCORES
+>    1) "a"
+>    2) "0"
+>    3) "b"
+>    4) "1"
+>    5) "c"
+>    6) "2"
+>    7) "d"
+>    8) "3"
+>    9) "e"
+>   10) "4"
+>   11) "f"
+>   12) "5"
+>   ```
+
+
+
+###### <font color = #1AA3FF>ZREVRANGE</font> key start stop [<font color = #1AA3FF>WITHSCORES</font>]
+
+>   参考`ZRANGE`命令。将集合元素按score==降序排序==（如果得分相同，将按字典排序），返回集合在指定范围内的成员。
+>
+>   ```
+>   127.0.0.1:6379> ZADD set 0 a 1 b 2 c 3 d 4 e 5 f 6 g 7 h 8 i 9 j
+>   (integer) 10
+>   127.0.0.1:6379> ZRANGE set 0 5 WITHSCORES
+>    1) "a"
+>    2) "0"
+>    3) "b"
+>    4) "1"
+>    5) "c"
+>    6) "2"
+>    7) "d"
+>    8) "3"
+>    9) "e"
+>   10) "4"
+>   11) "f"
+>   12) "5"
+>   127.0.0.1:6379> ZREVRANGE set 0 5 WITHSCORES
+>    1) "j"
+>    2) "9"
+>    3) "i"
+>    4) "8"
+>    5) "h"
+>    6) "7"
+>    7) "g"
+>    8) "6"
+>    9) "f"
+>   10) "5"
+>   11) "e"
+>   12) "4"
+>   ```
+
+
+
+###### <font color = #1AA3FF>ZRANGEBYLEX</font> key min max [<font color = #1AA3FF>LIMIT</font> offset count] 
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>ZREVRANGEBYLEX</font> key min max [<font color = #1AA3FF>LIMIT</font> offset count] 
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>ZRANGEBYSCORE</font> key min max [<font color = #1AA3FF>WITHSCORES</font>] [<font color = #1AA3FF>LIMIT</font> offset count]
+
+>   **时间复杂度：**O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements removed by the operation.
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>ZREVRANGEBYSCORE</font> key min max [<font color = #1AA3FF>WITHSCORES</font>] [<font color = #1AA3FF>LIMIT</font> offset count]
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>ZRANK</font> key member
+
+>   **时间复杂度：**O(log(N))
+>
+>   **说明：**返回有序集key中成员member的排名。其中有序集成员按score值递增(==从小到大==)顺序排列。排名以0为底，也就是说，score值最小的成员排名为0。
+
+
+
+###### <font color = #1AA3FF>ZREVRANK</font> key member
+
+>   **时间复杂度：**O(log(N))
+>
+>   **说明：**返回有序集key中成员member的排名。其中有序集成员按score值递减(==从小到大==)顺序排列。排名以0为底，也就是说，score值最小的成员排名为0。
 
 
 
 ##### 操作类
 
-ZADD key [NX|XX] [CH] [INCR] score member [score member ...] 
+###### <font color = #1AA3FF> ZADD</font> key [<font color = #1AA3FF>NX</font>|<font color = #1AA3FF>XX</font>] [<font color = #1AA3FF>CH</font>] [<font color = #1AA3FF>INCR</font>] score member [score member ...] 
 
-ZINCREBY key increment member
+>   **时间复杂度：**O(log(N)) for each item added, where N is the number of elements in the sorted set.
+>
+>   **说明：**将若干个成员及其分数添加到指定的有序集合中。如果member已经存在于集合中，则新的score将会覆盖member原来的score，并更新member到正确的排序位置。如果key不存在，则新建一个有序集合执行操作；如果key存在但对应的不是一个有序集合，则返回error。
+>
+>   **可选参数：**
+>
+>   -   NX：不更新存在的成员，只添加新成员。
+>   -   XX：仅更新存在的成员，不添加新成员。
+>   -   CH：修改返回值为发生变化的成员总数，原始是返回新添加成员的总数 (CH 是 *changed* 的意思)。
+>   -   INCR： 当`ZADD`指定这个选项时，成员的操作就等同`ZINCRBY`命令，对成员的分数进行递增操作。
+>
+>   **注意：**
+>
+>   1.   score是一个双精度64位浮点数，正负数均可。
+>   2.   有序集合里面的成员是不能重复的都是唯一的，但是，不同成员间有可能*有相同的分数*。当多个成员有相同的分数时，他们将是*有序的字典*（ordered lexicographically）（仍由分数作为第一排序条件，然后，相同分数的成员按照字典规则相对排序）。字典顺序排序用的是二进制，它比较的是字符串的字节数组。
+>
+>   **返回值：**新添加到集合的member的数量。
+>
+>   ```
+>   127.0.0.1:6379> ZADD set -1 a  0 b  1 c
+>   (integer) 3
+>   127.0.0.1:6379> ZADD set 0 a  1 v  2 c    # 修改a、c，新增v
+>   (integer) 1
+>   127.0.0.1:6379> ZRANGE set 0 -1
+>   1) "a"
+>   2) "b"
+>   3) "v"
+>   4) "c"
+>   ```
 
-ZPOPMAX key [count]
-
-ZPOPMIN key [count]
 
 
+###### <font color = #1AA3FF>ZINCREBY</font> key increment member
+
+>   **时间复杂度：**O(log(N)) where N is the number of elements in the sorted set.
+>
+>   **说明：**增加有序集合中指定成员的分数。如果有序集合中不存在该member，则添加该member并将increment设为它的分数；如果key对应的不是一个有序集合，返回error。
+>
+>   **返回值：**member的新分数
+
+
+
+###### <font color = #1AA3FF>ZPOPMAX</font> key [count]
+
+>   **时间复杂度：**O(log(N)*M) with N being the number of elements in the sorted set, and M being the number of elements popped.
+>
+>   **说明：**弹出有序集合中分数最高的count个成员及其分数。如果没有指定count，count的值默认为1。
+>
+>   **返回值：**弹出的元素和分数的有序列表。
+>
+>   ```
+>   127.0.0.1:6379> ZRANGE set 0 -1
+>   1) "a"
+>   2) "b"
+>   3) "v"
+>   4) "c"
+>   127.0.0.1:6379> ZPOPMAX set 10
+>   1) "c"
+>   2) "2"
+>   3) "v"
+>   4) "1"
+>   5) "b"
+>   6) "0"
+>   7) "a"
+>   8) "0"
+>   127.0.0.1:6379> ZRANGE set 0 -1
+>   (empty array)
+>   ```
+
+
+
+###### <font color = #1AA3FF>ZPOPMIN</font> key [count]
+
+>   参照`ZPOPMAX`命令。弹出有序集合分数最小的count个成员及其分数。
+
+
+
+###### <font color = #1AA3FF>ZREM</font> key member [member …]
+
+>   **时间复杂度：**O(M*log(N)) with N being the number of elements in the sorted set and M the number of elements to be removed.
+>
+>   **说明：**从集合删除指定成员。自动忽略不存在的成员。如果key对应的不是有序集合，返回error。
+>
+>   **返回值：**实际删除的成员的格式。
+
+
+
+###### <font color = #1AA3FF>ZREMRANGEBYLEX</font> key min max
+
+>   **时间复杂度：**
+>
+>   **说明：**
+>
+>   **返回值：**
+
+
+
+###### <font color = #1AA3FF>ZREMRANGEBYRANK</font> key start stop
+
+>   **时间复杂度：**O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements removed by the operation.
+>
+>   **说明：**移除有序集合中排名（rank）在指定范围内的所有成员。start和stop从0开始，允许为负数。
+>
+>   **返回值：**所有被移除的成员的数量
+>
+>   ```
+>   127.0.0.1:6379> ZADD set 0 a  1 v  2 c
+>   (integer) 3
+>   127.0.0.1:6379> ZREMRANGEBYRANK set 0 3
+>   (integer) 3
+>   ```
+
+
+
+###### <font color = #1AA3FF>ZREMRANGEBYSCORE</font> key min max
+
+>   **时间复杂度：**O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements removed by the operation.
+>
+>   **说明：**移除有序集合中分数在指定范围内的所有成员（min <= score <= max）
+>
+>   **返回值：所有被移除的成员的数量**
 
 
 
