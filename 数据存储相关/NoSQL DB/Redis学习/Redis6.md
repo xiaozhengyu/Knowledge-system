@@ -123,18 +123,33 @@ Redis = REmote DIctionary Server，Redis是一个开源的使用ANSI C语言编�
 
 所以Redis对于程序员来说可以算得上是必修课。
 
-### 2.1 应用场景
+### 2.1 特点
 
--   高速缓存
-    -   配合关系型数据库，存储高频热点数据，降低数据库IO
-    -   配合分布式结构，实现内存数据共享，如分布式Session
--   数据结构
-    -   最新N个数据：通过List实现按照自然时间排序的数据
-    -   排行榜：利用zSet（有序集合）
-    -   失效性数据，如短信验证码：Expire过期
-    -   计数器、秒杀：原子性
-    -   去重：利用Set
-    -   发布订阅消息系统：pub/sub模式
+要用好Redis，首先要明白它的特点：
+
+-   读写速度快
+
+    根据Redis官网的数据，Redis每秒能够完成10w次左右的读写。速度快的原因这里先简单说一下：
+
+    1.   数据存储在内存中，我们知道机器访问内存的速度是远远大于访问磁盘的
+    2.   Redia采用单线程架构，避免了上下文切换带来的成本以及多线程带来的竞争（即不存在加锁和释放锁的操作），减少了CPU的消耗
+    3.   采用了非阻塞I/O多路复用机制
+
+-   数据结构丰富
+
+    Redis不仅仅支持简单的key-value类型的数据，同时还提供list，set，zset，hash等数据结构
+
+-   支持持久化
+
+    Redis提供了RDB和AOF两种持久化策略，能最大限度地保证Redis服务器宕机重启后数据不会丢失
+
+-   支持高可用
+
+    可以使用主从复制，并且提供哨兵机制，保证服务器的高可用
+
+-   客户端语言多
+
+    因为Redis受到社区和各大公司的广泛认可，所以客户端语言涵盖了所有的主流编程语言，比如Java，C，C++，PHP，NodeJS等等
 
 #### 2.1.1 单线程 + I/O多路复用
 
@@ -156,7 +171,20 @@ Redis使用了单线程架构和I/O多路复用模型来实现高性能的内存
 
      ![img](https://img.php.cn/upload/article/000/054/025/41aaadeca98e14640948bdba8bc4ba12-3.png)
 
-3.   单线程避免了线程切换和竟态产生的消耗
+3.   单线程避免了线程切换和竟态（即没有加解锁操作）产生的CPU消耗
+
+### 2.2 应用场景
+
+-   高速缓存
+    -   配合关系型数据库，存储高频热点数据，降低数据库IO
+    -   配合分布式结构，实现内存数据共享，如分布式Session
+-   数据结构
+    -   最新N个数据：通过List实现按照自然时间排序的数据
+    -   排行榜：利用zSet（有序集合）
+    -   失效性数据，如短信验证码：Expire过期
+    -   计数器、秒杀：原子性
+    -   去重：利用Set
+    -   发布订阅消息系统：pub/sub模式
 
 
 
@@ -385,25 +413,12 @@ docker stop 容器ID或容器名
 Redis官网资料：
 
 -   命令
-    -   [Redis命令中心（英文）](https://redis.io/commands)
+    -   ##### [Redis命令中心（英文）](https://redis.io/commands)
     -   [Redis命令中心（中文）](http://www.redis.cn/commands.html)
     -   [Redis命令手册（中文）](https://www.redis.net.cn/order/)
 -   数据类型
     -   [数据类型（英文）](https://redis.io/topics/data-types-intro)
     -   [数据类型（中文）](http://www.redis.cn/topics/data-types.html)
-
-五种常用的数据结构：
-
-<img src="https://img.php.cn/upload/article/000/054/025/4004304cd47b8c9f9aa2f950c3c2412d-0.png" alt="img" style="zoom: 67%;" />
-
-每种数据结构的底层都有两种以上的内部编码实现，Redis会在不同的应用场景自动选择合适的内部编码，通过下 `OBJECT ENCODING key`命令可以常看指定key对应的数据结构当前使用的内部编码。
-
-Redis这样设计有两种好处：
-
-1.   改变内部编码对外部的数据结构以及操作命令没有影响
-2.   各种内部编码可以在合适的场景发挥各自的优势，例如，ziplist比较节省内存，但是在列表元素比较多的情况下，性能会有所下降，这时Redis会根据配置选项将列表类型的内部实现转换为linkedlist。
-
-<img src="https://img.php.cn/upload/article/000/054/025/41aaadeca98e14640948bdba8bc4ba12-1.png" alt="img" style="zoom:67%;" />
 
 ### 3.1 键（key）
 
@@ -1009,12 +1024,6 @@ OK
 
 >   说明：参考INCRBY命令
 
-
-
-#### 3.2.3 数据结构
-
-
-
 ---
 
 ### 3.3 列表（List）
@@ -1330,10 +1339,6 @@ OK
 4) "3"
 ```
 
-
-
-#### 3.3.3 数据结构
-
 ---
 
 ### 3.4 集合（Set）
@@ -1542,10 +1547,6 @@ Redis集合支持以O(1)的时间复杂度进行删除、添加、测试元素�
 2) "2"
 3) "3"
 ```
-
-
-
-#### 3.4.3 数据结构
 
 ---
 
@@ -1817,10 +1818,6 @@ Redis Hashes是字符串字段和字符串值之间的映射，所以它们是�
 >   **说明：**增加指定hash集合指定field对应的value的值。支持的值的范围限定在 64位 有符号整数。
 >
 >   **返回值：**操作完成后该field对应的value
-
-
-
-#### 3.5.3 数据结构
 
 ---
 
@@ -2124,14 +2121,46 @@ Redis有序集合与Redis集合类似，都是不相同的字符串的合集。�
 
 
 
-#### 3.6.3 数据结构
+## 4.底层原理
+
+Redis五种常用的数据结构及其内部编码：
+
+<img src="https://img.php.cn/upload/article/000/054/025/4004304cd47b8c9f9aa2f950c3c2412d-0.png" alt="img" style="zoom: 67%;" />
+
+<img src="https://img.php.cn/upload/article/000/054/025/41aaadeca98e14640948bdba8bc4ba12-1.png" alt="img" style="zoom:67%;" />
+
+每种数据结构的底层都有两种以上的内部编码实现，Redis会在不同的应用场景自动选择合适的内部编码，通过下 `OBJECT ENCODING key`命令可以常看指定key对应的数据结构当前使用的内部编码。
+
+Redis这样设计有两种好处：第一，改变内部编码对外部的数据结构以及操作命令没有影响。第二，各种内部编码可以在合适的场景发挥各自的优势，例如，ziplist比较节省内存，但是在列表元素比较多的情况下，性能会有所下降，这时Redis会根据配置选项将列表类型的内部实现转换为linkedlist。
+
+### 4.1 redisObject
+
+在Redis的命令中，key所支持的命令与key对应的value的类型精密相关。例如，`LPUSH` 和 `LLEN` 只能用于列表，`SADD` 和 `SRANDMEMBER` 只能用于集合，`DEL`、 `TTL` 和 `TYPE`可以用于任何类型的键。
+
+以上描述说明，Redis必须通过某种方式判断出key对应的value具体是什么数据类型，才能判断当前key是否支持某个命令，才能选择出合适的处理方式。
 
 
 
 
+
+![img](https://pic1.zhimg.com/v2-5fa98ad471dfe079222f88922db8bd88_r.jpg)
+
+
+
+### 4.2 String
+
+### 4.3 List
+
+### 4.4 Set
+
+### 4.5 Hash
+
+### 4.6 ZSet
 
 
 
 ## 参考资料
 
 1.   [尚硅谷2021Redis视频教程](https://www.bilibili.com/video/BV1Rv41177Af)
+2.   [Redis的五种数据类型底层实现原理是什么？](https://zhuanlan.zhihu.com/p/344918922)
+3.   [Redis redisObject 数据结构](https://segmentfault.com/a/1190000019980165)
