@@ -2135,17 +2135,67 @@ Redis这样设计有两种好处：第一，改变内部编码对外部的数据
 
 ### 4.1 redisObject
 
-在Redis的命令中，key所支持的命令与key对应的value的类型精密相关。例如，`LPUSH` 和 `LLEN` 只能用于列表，`SADD` 和 `SRANDMEMBER` 只能用于集合，`DEL`、 `TTL` 和 `TYPE`可以用于任何类型的键。
+<u>value的数据结构决定了key能够处理哪些命令，数据结构的内部编码决定的命令的具体实现流程</u>。例如，`LPUSH` 命令只能用于value为列表的key，根据列表的具体编码（linkedlist或ziplist）redis采用不同的方式执行数据的压入操作。
 
-以上描述说明，Redis必须通过某种方式判断出key对应的value具体是什么数据类型，才能判断当前key是否支持某个命令，才能选择出合适的处理方式。
+以上描述说明，在处理各种命令之前，Redis必须通过某种方式判断出key对应的value具体是什么数据类型、具体采用了什么内部编码。Redis通过构建自己的类型系统来解决这个问题，这个系统的主要功能包括：
 
+-   redisObject对象
+-   基于redisObject对象的类型检查
+-   基于redisObject对象的显示多态函数
+-   redisObject的分配、共享、销毁机制
 
+redisObject是Redis类型系统的核心，所有value实际都是redisObject：
 
+```C
+typedef struct redisObject {
+    unsigned type:4; // 类型
+    unsigned notused:2;// 对齐位
+    unsigned encoding:4;// 编码方式
+    unsigned lru:22;// LRU 时间（相对于 server.lruclock）
+    int refcount;// 引用计数
+    void *ptr;// 指向对象的值
+} robj;
+```
 
+`type`、`encoding`、`ptr`是redisObject最重要的3个属性：
 
-![img](https://pic1.zhimg.com/v2-5fa98ad471dfe079222f88922db8bd88_r.jpg)
+-   `type`记录了value的数据类型，它的值可能是下列常量中的一个：
 
+    ```c
+    #define REDIS_STRING 0  // 字符串
+    #define REDIS_LIST 1    // 列表
+    #define REDIS_SET 2     // 集合
+    #define REDIS_ZSET 3    // 有序集
+    #define REDIS_HASH 4    // 哈希表
+    ```
 
+-   `encoding`记录value的编码方式，它的值可能是下列常量中的一个：
+
+    ```c
+    #define REDIS_ENCODING_RAW 0            // 编码为字符串
+    #define REDIS_ENCODING_INT 1            // 编码为整数
+    #define REDIS_ENCODING_HT 2             // 编码为哈希表
+    #define REDIS_ENCODING_ZIPMAP 3         // 编码为 zipmap
+    #define REDIS_ENCODING_LINKEDLIST 4     // 编码为双端链表
+    #define REDIS_ENCODING_ZIPLIST 5        // 编码为压缩列表
+    #define REDIS_ENCODING_INTSET 6         // 编码为整数集合
+    #define REDIS_ENCODING_SKIPLIST 7       // 编码为跳跃表
+    ```
+
+    ![img](markdown/Redis6.assets/v2-5fa98ad471dfe079222f88922db8bd88_r.jpg)
+
+-   `ptr`是一个指向实际存储value的数据结果的指针
+
+有了redisObject结构的存在，Redis在执行命令时进行类型检查和对编码进行多态操作就简单得多了。处理一个命令时，Redis的执行过程大致分为以下步骤：
+
+1.  根据给定的key在数据库字典中查找它对应的redisObject，如果找不到则返回NULL
+2.  检查redisObject的type属性和执行命令所需的类型要求是否相符，如果不相符则返回ERROR
+3.  根据redisObject的encoding属性，选择合适和操作函数来处理底层的数据结构。
+4.  返回数据结构的操作结果作为命令的返回值
+
+以下是redis执行LPOP命令的完整流程：
+
+<img src="markdown/Redis6.assets/bVbvZUL" alt="clipboard.png" style="zoom:67%;" />
 
 ### 4.2 String
 
