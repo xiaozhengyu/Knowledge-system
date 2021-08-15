@@ -741,7 +741,7 @@ OK
 
 #### 3.2.1 简介
 
-字符串是一种最基本的Redis值类型。Redis字符串是二进制安全的，这意味着一个Redis字符串能包含任意类型的数据，例如： 一张JPEG格式的图片或者一个序列化的Ruby对象。
+字符串是一种最基本的Redis值类型。Redis字符串是==二进制安全==的，这意味着一个Redis字符串能包含任意类型的数据，例如： 一张JPEG格式的图片或者一个序列化的Ruby对象。
 
 一个字符串类型的值最多能存储==512MB==的内容。
 
@@ -2121,17 +2121,18 @@ Redis有序集合与Redis集合类似，都是不相同的字符串的合集。�
 
 
 
-## 4.底层原理
+## 4. 底层原理
 
 Redis五种常用的数据结构及其内部编码：
 
-<img src="https://img.php.cn/upload/article/000/054/025/4004304cd47b8c9f9aa2f950c3c2412d-0.png" alt="img" style="zoom: 67%;" />
+<img src="markdown/Redis6.assets/4004304cd47b8c9f9aa2f950c3c2412d-0.png" alt="img" style="zoom: 67%;" />
 
-<img src="https://img.php.cn/upload/article/000/054/025/41aaadeca98e14640948bdba8bc4ba12-1.png" alt="img" style="zoom:67%;" />
+![image-20210815151332193](markdown/Redis6.assets/image-20210815151332193.png)
 
-每种数据结构的底层都有两种以上的内部编码实现，Redis会在不同的应用场景自动选择合适的内部编码，通过下 `OBJECT ENCODING key`命令可以常看指定key对应的数据结构当前使用的内部编码。
+每种数据结构的底层都有两种以上的内部编码实现，Redis会在不同的应用场景自动选择合适的内部编码。Redis这样设计有两种好处：
 
-Redis这样设计有两种好处：第一，改变内部编码对外部的数据结构以及操作命令没有影响。第二，各种内部编码可以在合适的场景发挥各自的优势，例如，ziplist比较节省内存，但是在列表元素比较多的情况下，性能会有所下降，这时Redis会根据配置选项将列表类型的内部实现转换为linkedlist。
+1.  可以偷偷的改进内部编码，而对外的数据结构和命令没有影响，这样一旦开发出更优秀的内部编码，无需改动对外数据结构和命令。
+2.  多种内部编码实现可以在不同场景下发挥各自的优势。例如ziplist比较节省内存，但是在列表元素比较多的情况下，性能会有所下降，这时候Redis会根据配置选项将列表类型的内部实现转换为linkedlist。
 
 ### 4.1 redisObject
 
@@ -2144,22 +2145,28 @@ Redis这样设计有两种好处：第一，改变内部编码对外部的数据
 -   基于redisObject对象的显示多态函数
 -   redisObject的分配、共享、销毁机制
 
-redisObject是Redis类型系统的核心，所有value实际都是redisObject：
+==redisObject是Redis类型系统的核心，所有value实际都是redisObject==：
 
 ```C
 typedef struct redisObject {
-    unsigned type:4; // 类型
-    unsigned notused:2;// 对齐位
-    unsigned encoding:4;// 编码方式
-    unsigned lru:22;// LRU 时间（相对于 server.lruclock）
-    int refcount;// 引用计数
-    void *ptr;// 指向对象的值
+    // 类型
+    unsigned type:4;
+    // 对齐位
+    unsigned notused:2;
+    // 编码方式
+    unsigned encoding:4;
+    // Least Recently Used的缩写，即最近最少使用
+    unsigned lru:22;
+    // 引用计数
+    int refcount;
+    // 指向对象的值
+    void *ptr;
 } robj;
 ```
 
 `type`、`encoding`、`ptr`是redisObject最重要的3个属性：
 
--   `type`记录了value的数据类型，它的值可能是下列常量中的一个：
+-   ==type==记录了value的数据类型，它的值可能是下列常量中的一个：
 
     ```c
     #define REDIS_STRING 0  // 字符串
@@ -2169,7 +2176,7 @@ typedef struct redisObject {
     #define REDIS_HASH 4    // 哈希表
     ```
 
--   `encoding`记录value的编码方式，它的值可能是下列常量中的一个：
+-   ==encoding==记录value的编码方式，它的值可能是下列常量中的一个：
 
     ```c
     #define REDIS_ENCODING_RAW 0            // 编码为字符串
@@ -2184,28 +2191,188 @@ typedef struct redisObject {
 
     ![img](markdown/Redis6.assets/v2-5fa98ad471dfe079222f88922db8bd88_r.jpg)
 
--   `ptr`是一个指向实际存储value的数据结果的指针
+-   ==ptr==是一个指向实际存储value的数据结果的指针
 
-有了redisObject结构的存在，Redis在执行命令时进行类型检查和对编码进行多态操作就简单得多了。处理一个命令时，Redis的执行过程大致分为以下步骤：
+有了redisObject结构的存在，Redis在执行命令时进行类型检查和对编码进行多态操作就简单得多了。Redis处理一个命令的大致步骤如下：
 
 1.  根据给定的key在数据库字典中查找它对应的redisObject，如果找不到则返回NULL
 2.  检查redisObject的type属性和执行命令所需的类型要求是否相符，如果不相符则返回ERROR
 3.  根据redisObject的encoding属性，选择合适和操作函数来处理底层的数据结构。
 4.  返回数据结构的操作结果作为命令的返回值
 
-以下是redis执行LPOP命令的完整流程：
+Redis执行LPOP命令的完整流程：
 
-<img src="markdown/Redis6.assets/bVbvZUL" alt="clipboard.png" style="zoom:67%;" />
+<img src="markdown/Redis6.assets/bVbvZUL" alt="clipboard.png" style="zoom: 50%;" />
+
+redisObject相关命令：
+
+-   `TYPE` key：查看value的数据结构（type）
+-   `OBJECT` `ENCODING` key：查看value的内部编码（encoding）
+
+```
+127.0.0.1:6379> SET k1 123
+OK
+127.0.0.1:6379> TYPE k1
+string
+127.0.0.1:6379> OBJECT encoding k1
+"int"
+```
 
 ### 4.2 String
 
+![image-20210815152150586](markdown/Redis6.assets/image-20210815152150586.png)
+
+| encoding | 适用场景                           |
+| -------- | ---------------------------------- |
+| int      | 字符串是可以用long类型表示的整数值 |
+| embstr   | 字符串长度 <= 39字节               |
+| raw      | 字符串长度 > 39字节                |
+
+```
+127.0.0.1:6379> SET str 123456
+OK
+127.0.0.1:6379> OBJECT ENCODING str    # 整数
+"int"
+127.0.0.1:6379> SET str "hello world"
+OK
+127.0.0.1:6379> OBJECT ENCODING str    # 短字符串
+"embstr"
+127.0.0.1:6379> SET str "abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc"
+OK
+127.0.0.1:6379> OBJECT ENCODING strn   # 长字符串
+"raw"
+```
+
+#### 4.2.1 int
+
+
+
+#### 4.2.2 embstr
+
+
+
+#### 4.2.3 raw
+
+redis的string为什么是二进制安全的？
+
 ### 4.3 List
+
+![image-20210815152158978](markdown/Redis6.assets/image-20210815152158978.png)
+
+-   ziplist：保存的键值对的个数 < hash_max_ziplist_entried（默认为512个），且键和值的字符串长度都 < hash_max_ziplist_value（默认为64字节），那么encoding为ziplist
+-   linkedlist：不满足ziplist使用条件时
+
+
 
 ### 4.4 Set
 
+![image-20210815152209499](markdown/Redis6.assets/image-20210815152209499.png)
+
+-   intset：如果集合中所有字符串都是整数值，且个数 < set_max_intset_entries（默认为512个），那么encoding为intset
+-   hashtabl：不满足intset使用条件时
+
+
+
 ### 4.5 Hash
 
+![image-20210815152218204](markdown/Redis6.assets/image-20210815152218204.png)
+
+-   ziplist：保存的键值对的个数 < hash_max_ziplist_entried（默认为512个），且键和值的字符串长度都 < hash_max_ziplist_value（默认为64字节），那么encoding为ziplist
+-   hashtable：不满足ziplist使用条件时
+
+
+
 ### 4.6 ZSet
+
+![image-20210815152227253](markdown/Redis6.assets/image-20210815152227253.png)
+
+-   ziplist：如果集合中所有字符串的长度都 < zset_max_ziplist_value（默认为64字节），且元素个数 < zset_max_ziplist_entries（默认为128 个），那么encoding为ziplist
+-   skiplist：不满足ziplist使用条件时
+
+## 5. Redis配置文件
+
+### 5.1 存储单位
+
+```
+# Note on units: when memory size is needed, it is possible to specify
+# it in the usual form of 1k 5GB 4M and so forth:
+#
+# 1k => 1000 bytes
+# 1kb => 1024 bytes
+# 1m => 1000000 bytes
+# 1mb => 1024*1024 bytes
+# 1g => 1000000000 bytes
+# 1gb => 1024*1024*1024 bytes
+#
+# units are case insensitive so 1GB 1Gb 1gB are all the same.
+```
+
+在配置文件头部可以定义存储空间度量单位， 只支持以bytes为单位，且大小写不敏感。
+
+### 5.2 配置文件引入
+
+```
+################################## INCLUDES ###################################
+
+# Include one or more other config files here.  This is useful if you
+# have a standard template that goes to all Redis servers but also need
+# to customize a few per-server settings.  Include files can include
+# other files, so use this wisely.
+#
+# Note that option "include" won't be rewritten by command "CONFIG REWRITE"
+# from admin or Redis Sentinel. Since Redis always uses the last processed
+# line as value of a configuration directive, you'd better put includes
+# at the beginning of this file to avoid overwriting config change at runtime.
+#
+# If instead you are interested in using includes to override configuration
+# options, it is better to use include as the last line.
+#
+# include /path/to/local.conf
+# include /path/to/other.conf
+```
+
+可以将一些公共的配置信息单独抽取到一个配置文件，然后通过include进行引入。
+
+### 5.3 网络
+
+#### 5.3.1 本地访问限制
+
+```
+################################## NETWORK #####################################
+
+# By default, if no "bind" configuration directive is specified, Redis listens
+# for connections from all available network interfaces on the host machine.
+# It is possible to listen to just one or multiple selected interfaces using
+# the "bind" configuration directive, followed by one or more IP addresses.
+# Each address can be prefixed by "-", which means that redis will not fail to
+# start if the address is not available. Being not available only refers to
+# addresses that does not correspond to any network interfece. Addresses that
+# are already in use will always fail, and unsupported protocols will always BE
+# silently skipped.
+#
+# Examples:
+#
+# bind 192.168.1.100 10.0.0.1     # listens on two specific IPv4 addresses
+# bind 127.0.0.1 ::1              # listens on loopback IPv4 and IPv6
+# bind * -::*                     # like the default, all available interfaces
+#
+# ~~~ WARNING ~~~ If the computer running Redis is directly exposed to the
+# internet, binding to all the interfaces is dangerous and will expose the
+# instance to everybody on the internet. So by default we uncomment the
+# following bind directive, that will force Redis to listen only on the
+# IPv4 and IPv6 (if available) loopback interface addresses (this means Redis
+# will only be able to accept client connections from the same host that it is
+# running on).
+#
+# IF YOU ARE SURE YOU WANT YOUR INSTANCE TO LISTEN TO ALL THE INTERFACES
+# JUST COMMENT OUT THE FOLLOWING LINE.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bind 127.0.0.1 -::1
+```
+
+bind 127.0.0.1 -::1 设置只能通过本地访问Redis，可以通过去除该配置发开外部对Redis的访问。
+
+
 
 
 
