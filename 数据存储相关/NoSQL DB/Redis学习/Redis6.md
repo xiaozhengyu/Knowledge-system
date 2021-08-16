@@ -2567,7 +2567,53 @@ daemonize no
 
 开启Redis后台启动
 
+## 6. 发布与订阅
 
+### 6.1 含义
+
+Redis发布/订阅是一种消息通信模式：发送者（pub）发送消息，订阅者（sub）接收消息。
+
+Redis数据库可以存在任意数量的频道，Redis客户端可以订阅任意数量的频道。（类似于B站UP主和B站用户的关系——B站存在若干UP主，B站存在若干用户，用户可以关注若干UP主）
+
+![image-20210816224216352](markdown/Redis6.assets/image-20210816224216352.png)
+
+### 6.2 实现
+
+#### 6.2.1 发布
+
+-   <font color = #1AA3FF>PUBLISH</font> channel message
+
+    >   先指定频道分布消息
+
+#### 6.2.2 订阅
+
+-   <font color = #1AA3FF>SUBSCRIBE</font> channel [channel …]
+
+    >   订阅指定频道的消息。一旦进入订阅状态，客户端只能接受订阅相关的命令（`SUBSCRIBE`、`PSUBSCRIBE`、`UNSUBSCRIBE`、`PUBSUBSCRIBE`），除此之外的其他命令一律失效。
+
+-   <font color = #1AA3FF>UNSUBSCRIBE</font> channel [channel …]
+
+    >   取消对指定频道的订阅。如果没有指定channel，那么客户端取消对所有channel的订阅。
+
+-   <font color = #1AA3FF>PSUBSCRIBE</font> pattern [pattern …]
+
+    >   订阅符合指定模式的消息。支持的模式有：
+    >
+    >   1.  `h?llo` subscribes to `hello`, `hallo` and `hxllo`
+    >   2.  ``h*llo` subscribes to `hllo` and `heeeello`
+    >   3.  `h[ae]llo` subscribes to `hello` and `hallo,` but not `hillo`
+    >
+    >   如果想输入普通的字符，可以在前面添加\
+
+-   <font color = #1AA3FF>PUNSUBSCRIBE</font> pattern [pattern …]
+
+    >   取消对指定模式的的订阅。如果没有指定pattern，那么客户端取消对所有模式的订阅。
+
+![image-20210816230949585](markdown/Redis6.assets/image-20210816230949585.png)
+
+## 7. Redis6新数据类型
+
+## 8. Jedis
 
 
 
