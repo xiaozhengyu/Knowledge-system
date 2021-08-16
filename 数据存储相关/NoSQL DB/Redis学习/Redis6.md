@@ -366,7 +366,7 @@ docker start 容器ID或容器名
 查看容器运行信息：
 
 ```
-docker ps
+docker ps -a
 ```
 
 ![image-20210810135829173](markdown/Redis6.assets/image-20210810135829173.png)
@@ -403,8 +403,6 @@ redis-cli
 ```
 docker stop 容器ID或容器名
 ```
-
-
 
 
 
@@ -2307,7 +2305,7 @@ redis的string为什么是二进制安全的？
 # units are case insensitive so 1GB 1Gb 1gB are all the same.
 ```
 
-在配置文件头部可以定义存储空间度量单位， 只支持以bytes为单位，且大小写不敏感。
+Redis只支持以bytes为单位定位存储单位，且大小写不敏感。
 
 ### 5.2 配置文件引入
 
@@ -2331,11 +2329,11 @@ redis的string为什么是二进制安全的？
 # include /path/to/other.conf
 ```
 
-可以将一些公共的配置信息单独抽取到一个配置文件，然后通过include进行引入。
+可以将一些公共的配置信息单独抽取到一个配置文件，然后通过include引入。
 
 ### 5.3 网络
 
-#### 5.3.1 本地访问限制
+#### 主机绑定
 
 ```
 ################################## NETWORK #####################################
@@ -2370,9 +2368,145 @@ redis的string为什么是二进制安全的？
 bind 127.0.0.1 -::1
 ```
 
-bind 127.0.0.1 -::1 设置只能通过本地访问Redis，可以通过去除该配置发开外部对Redis的访问。
+如果未指定“bind”配置指令，Redis将侦听本地主机（host machine）上所有可用网络接口的连接。
 
+[如果我们想到限制只有指定的主机才可以连接到Redis，我们只能通过防火墙来控制，而不能通过Redis配置文件中的bind参数来限制。](https://blog.csdn.net/cw_hello1/article/details/83444013?utm_source=app)
 
+#### 安全模式
+
+```
+# Protected mode is a layer of security protection, in order to avoid that
+# Redis instances left open on the internet are accessed and exploited.
+#
+# When protected mode is on and if:
+#
+# 1) The server is not binding explicitly to a set of addresses using the
+#    "bind" directive.
+# 2) No password is configured.
+#
+# The server only accepts connections from clients connecting from the
+# IPv4 and IPv6 loopback addresses 127.0.0.1 and ::1, and from Unix domain
+# sockets.
+#
+# By default protected mode is enabled. You should disable it only if
+# you are sure you want clients from other hosts to connect to Redis
+# even if no authentication is configured, nor a specific set of interfaces
+# are explicitly listed using the "bind" directive.
+protected-mode yes
+```
+
+Redis本身没有办法限制只让指定主机访问，就像上文说的，bind只用于设置接口地址。
+
+1.   如果设置 bind 127.0.0.1，这是很安全的，因为只有本地主机可以连接Redis，就算不设置密码也很安全，除非有人登录了服务器。
+2.   如果设置 bind 0.0.0.，这表示所有主机都可以连接到Redis（前提是你的服务器开发了Redis的端口），这是如果设置密码就会多一层保护。
+
+protected-mode 就是Redis自身的一个安全层，这个安全层的作用就是控制只有本地主机可以访问redis。开启这个安全层必须同时满足三个条件，否则安全层就是关闭的：
+
+1.   配置 protected-mode yes
+2.   没有配置 bind
+3.   没有设置密码
+
+#### 监听端口
+
+```
+# Accept connections on the specified port, default is 6379 (IANA #815344).
+# If port 0 is specified Redis will not listen on a TCP socket.
+port 6379
+```
+
+配置访问Redis监听的端口
+
+#### 客户端闲置时间
+
+```
+# Close the connection after a client is idle for N seconds (0 to disable)
+timeout 0
+```
+
+当客户端闲置多长秒后关闭连接，如果指定为 0 ，表示关闭该功能 
+
+### 5.4 数据库个数
+
+```
+# Set the number of databases. The default database is DB 0, you can select
+# a different one on a per-connection basis using SELECT <dbid> where
+# dbid is a number between 0 and 'databases'-1
+databases 16
+```
+
+默认情况下Redis数据库个数为16
+
+### 5.6 访问限制
+
+#### 5.6.1 密码
+
+```
+# IMPORTANT NOTE: starting with Redis 6 "requirepass" is just a compatibility
+# layer on top of the new ACL system. The option effect will be just setting
+# the password for the default user. Clients will still authenticate using
+# AUTH <password> as usually, or more explicitly with AUTH default <password>
+# if they follow the new protocol: both will work.
+#
+# The requirepass is not compatable with aclfile option and the ACL LOAD
+# command, these will cause requirepass to be ignored.
+#
+# requirepass foobared
+```
+
+#### 5.6.2 客户端数
+
+```
+# Set the max number of connected clients at the same time. By default
+# this limit is set to 10000 clients, however if the Redis server is not
+# able to configure the process file limit to allow for the specified limit
+# the max number of allowed clients is set to the current file limit
+# minus 32 (as Redis reserves a few file descriptors for internal uses).
+#
+# Once the limit is reached Redis will close all the new connections sending
+# an error 'max number of clients reached'.
+#
+# IMPORTANT: When Redis Cluster is used, the max number of connections is also
+# shared with the cluster bus: every node in the cluster will use two
+# connections, one incoming and another outgoing. It is important to size the
+# limit accordingly in case of very large clusters.
+#
+# maxclients 10000
+```
+
+设置同一时间最大客户端连接数，默认无限制，Redis 可以同时打开的客户端连接数为 Redis 进程可以打开的最大文件描述符数，如果设置  maxclients 0，表示不作限制。当客户端连接数到达限制时，Redis 会关闭新的连接并向客户端返回 max number of  clients reached 错误信息
+
+### 5.7 内存管理
+
+#### 5.7.1 最大内存
+
+```
+# Set a memory usage limit to the specified amount of bytes.
+# When the memory limit is reached Redis will try to remove keys
+# according to the eviction policy selected (see maxmemory-policy).
+#
+# If Redis can't remove keys according to the policy, or if the policy is
+# set to 'noeviction', Redis will start to reply with errors to commands
+# that would use more memory, like SET, LPUSH, and so on, and will continue
+# to reply to read-only commands like GET.
+#
+# This option is usually useful when using Redis as an LRU or LFU cache, or to
+# set a hard memory limit for an instance (using the 'noeviction' policy).
+#
+# WARNING: If you have replicas attached to an instance with maxmemory on,
+# the size of the output buffers needed to feed the replicas are subtracted
+# from the used memory count, so that network problems / resyncs will
+# not trigger a loop where keys are evicted, and in turn the output
+# buffer of replicas is full with DELs of keys evicted triggering the deletion
+# of more keys, and so forth until the database is completely emptied.
+#
+# In short... if you have replicas attached it is suggested that you set a lower
+# limit for maxmemory so that there is some free RAM on the system for replica
+# output buffers (but this is not needed if the policy is 'noeviction').
+#
+# maxmemory <bytes>
+```
+
+指定 Redis 最大内存限制，Redis 在启动时会把数据加载到内存中，达到最大内存后，Redis 会先尝试清除已到期或即将到期的  Key，当此方法处理 后，仍然到达最大内存设置，将无法再进行写入操作，但仍然可以进行读取操作。Redis 新的 vm 机制，会把 Key  存放内存，Value 会存放在 swap 区
 
 
 
