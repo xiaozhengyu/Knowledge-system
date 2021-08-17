@@ -2287,7 +2287,7 @@ redis的string为什么是二进制安全的？
 -   ziplist：如果集合中所有字符串的长度都 < zset_max_ziplist_value（默认为64字节），且元素个数 < zset_max_ziplist_entries（默认为128 个），那么encoding为ziplist
 -   skiplist：不满足ziplist使用条件时
 
-## 5. Redis配置文件
+## 5. Redis 配置文件
 
 ### 5.1 存储单位
 
@@ -2611,7 +2611,27 @@ Redis数据库可以存在任意数量的频道，Redis客户端可以订阅任�
 
 ![image-20210816230949585](markdown/Redis6.assets/image-20210816230949585.png)
 
-## 7. Redis6新数据类型
+## 7. Redis 6 新数据类型
+
+### 7.1 BitMaps
+
+#### 7.1.1 简介
+
+Bitmaps和set的比较
+
+#### 7.1.2 常用命令
+
+### 7.2 HyperLogLog
+
+#### 7.2.1 简介
+
+#### 7.2.2 常用命令
+
+### 7.3 Geospatial
+
+#### 7.3.1 简介
+
+#### 7.3.2 常用命令
 
 ## 8. Jedis
 
