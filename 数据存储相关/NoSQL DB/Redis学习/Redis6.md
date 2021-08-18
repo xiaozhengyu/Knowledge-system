@@ -2741,28 +2741,88 @@ BitMaps最大的优势在于，在某些场景下能够极大的<font color = re
 
 工作中经常会遇到与统计相关的功能需求，例如统计网站PV（PageView，页面访问量），对此，使用Redis中String数据结构的`INCR`和`INCRBY`命令即可轻松实现。然而，当面对UV（UniqueVisitor，独立访客）、独立IP、所有记录数等需要去重和计数的问题时改如何解决？
 
+
+
 ![image-20210818193400033](markdown/Redis6.assets/image-20210818193400033.png)
 
-上述统计集合中不重复元素的问题被称为==基数问题==。
+
+
+上述统计集合中不重复元素的问题被称为==基数问题==（基数在数学的集合论上是用来描述集合大小的一个概念）。
 
 解决基数问题有很多种方案：
 
 1.   将数据存储在MySQL，使用 distinct count 进行统计
 2.   将数据存储在Redis，使用Hash、Set、Bitmaps等数据结构进行处理
 
-以上方案结果精确，<u>但是随着数据量不断提升，计算所占用的内存空间也将越来越大，过于庞大的数据集根本没法处理。</u>为此，Redis 6 新增了HyperLogLog数据类型，采用“精度换内存”的策略解决这个问题。
+以上方案结果精确，<u>但是随着数据量不断提升，计算所占用的内存空间将越来越大，过于庞大的数据集根本没法处理。</u>为此，Redis 6 新增了HyperLogLog数据类型，采用==“精度换内存”==的策略解决这个问题。
+
+
 
 ![image-20210818194738144](markdown/Redis6.assets/image-20210818194738144.png)
 
->   官方说明：
+HLL适用于需要统计唯一数据，且对数据的精度要求不是特别高的场景。
+
+>   **官方说明：**
 >
 >   A HyperLogLog is a probabilistic data structure used in order to count unique things.
 >
->   Usually counting unique items requires using an amount of memory proportional to the number of items you want to count, because you need to remember the elements you have already seen in the past in order to avoid counting them multiple times. 
+>   （HyperLogLog是一种用于统计唯一事物的“概率性数据结构”）
 >
->   
+>   <u>Usually counting unique items requires using an amount of memory proportional to the number of items you want to count, because you need to remember the elements you have already seen in the past in order to avoid counting them multiple times.</u> 
+>
+>   （通常，对多少元素进行唯一性统计就需要多少内存，因为，你必须记录已经统计的元素，以避免重复统计）
+>
+>   ![image-20210818222234758](markdown/Redis6.assets/image-20210818222234758.png)
+>
+>   However there is a set of algorithms that trade memory for precision: you end with an estimated measure with a standard error, in the case of the Redis implementation, which is less than 1%.  The magic of this algorithm is that you no longer need to use an amount of memory proportional to the number of items counted, and instead can use a constant amount of memory! 12k bytes in the worst case, or a lot less if your HyperLogLog (We’ll just call them HLL from now) has seen very few elements.
+>
+>   （但是，有一组算法可以牺牲精度为代价换取内存消耗的降低：计算过程需要的内存量不在于数据集的大小成正比，而可以是一个恒定的值——最坏的情况是12Kb）
+>
+>   HLLs in Redis, while technically a different data structure, is encoded as a Redis string, so you can call `GET` to serialize a HLL, and `SET` to deserialize it back to the server.
+>
+>   （从技术角度，HLL是一种新的Redis数据结构；从实现角度，HLL的底层是String）
 
 #### 7.2.2 常用命令
+
+##### 查询类
+
+###### <font color = #1AA3FF>PFADD</font> key element [element …]
+
+>   **说明：**将指定元素添加到HLL中。
+>
+>   该命令指定后能会调整HLL的内部结构，以反映对集合基数新的估计值。如果HLL的近似基数在执行完该命令以后发生变化，那么返回1，否则返回0。
+>
+>   ```
+>   127.0.0.1:6379> PFADD hll A B C D C B A
+>   (integer) 1
+>   127.0.0.1:6379> PFCOUNT hll
+>   (integer) 4
+>   ```
+
+##### 操作类
+
+###### <font color = #1AA3FF>PFCOUNT</font> key [key]
+
+>   **说明：**获取HLL计算的集合基数估计值。估计值与实际值存在0.81%的标准误差。
+
+###### <font color = #1AA3FF>PFMERGE</font> destkey sourcekey [sourcekey …]
+
+>   **说明：**合并多个HLL的估计值，并将其保存到destkey。
+>
+>   ```
+>   127.0.0.1:6379> PFADD hll A B C D C B A
+>   (integer) 1
+>   127.0.0.1:6379> PFCOUNT hll
+>   (integer) 4
+>   127.0.0.1:6379> PFADD hll2 1 2 3 4 3 2 1
+>   (integer) 1
+>   127.0.0.1:6379> PFCOUNT hll2
+>   (integer) 4
+>   127.0.0.1:6379> PFMERGE hll3 hll hll2
+>   OK
+>   127.0.0.1:6379> PFCOUNT hll3
+>   (integer) 8
+>   ```
 
 ### 7.3 Geospatial
 
