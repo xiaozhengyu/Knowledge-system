@@ -411,7 +411,7 @@ docker stop 容器ID或容器名
 Redis官网资料：
 
 -   命令
-    -   ##### [Redis命令中心（英文）](https://redis.io/commands)
+    -   [Redis命令中心（英文）](https://redis.io/commands)
     -   [Redis命令中心（中文）](http://www.redis.cn/commands.html)
     -   [Redis命令手册（中文）](https://www.redis.net.cn/order/)
 -   数据类型
@@ -2617,13 +2617,150 @@ Redis数据库可以存在任意数量的频道，Redis客户端可以订阅任�
 
 #### 7.1.1 简介
 
-Bitmaps和set的比较
+官方原文：
+
+>   Bitmaps are not an actual data type, but a set of bit-oriented operations defined on the String type. Since strings are binary safe blobs and their maximum length is 512 MB, they are suitable to set up to 2^32 different bits.
+>
+>   One of the biggest advantages of bitmaps is that they often provide extreme space savings when storing information. 
+
+
+
+==BitMaps不是一种新的数据类型，而是基于字符串类型定义的一组面向”位“的操作。==由于Redis中单个字符串的大小上限为512Mb，所以BitMaps存储的位上限为2^32^个（1b = 8bit），即便如此，BitMaps也可以简单的划分成多个BitMaps存储在不同的key。
+
+BitMaps最大的优势在于，在某些场景下能够极大的<font color = red>节约存储空间</font>
+
+##### BitMaps与Set对比
+
+假设网站有1亿用户， 每天独立访问的用户有5千万， 如果每天用Set和Bitmaps分别存储活跃用户可以得到下表数据：
+
+| 数据类型 | 每个用户id占用空间 | 需要存储的用户量 | 全部内存量             |
+| -------- | ------------------ | ---------------- | ---------------------- |
+| Set      | 64位               | 50000000         | 64位*50000000 = 400MB  |
+| Bitmaps  | 1位                | 100000000        | 1位*100000000 = 12.5MB |
+
+很明显， 这种情况下使用Bitmaps能节省很多的内存空间， 尤其是随着时间推移节省的内存还是非常可观的：
+
+| 数据类型 | 一天   | 一个月 | 一年  |
+| -------- | ------ | ------ | ----- |
+| Set      | 400MB  | 12GB   | 144GB |
+| Bitmaps  | 12.5MB | 375MB  | 4.5GB |
+
+但Bitmaps并不是万金油， 假如该网站每天的独立访问用户很少， 例如只有10万（大量的僵尸用户）， 那么两者的对比如下表所示， 很显然， 这时候使用Bitmaps就不太合适了， 因为基本上大部分位都是0：
+
+| 数据类型 | 每个userid占用空间 | 需要存储的用户量 | 全部内存量             |
+| -------- | ------------------ | ---------------- | ---------------------- |
+| Set      | 64位               | 100000           | 64位*100000 = 800KB    |
+| Bitmaps  | 1位                | 100000000        | 1位*100000000 = 12.5MB |
+
+
 
 #### 7.1.2 常用命令
 
-### 7.2 HyperLogLog
+##### 查询类
+
+###### <font color = #1AA3FF>GETBIT</font> key offset
+
+>   **说明：**获取指定位的值
+>
+>   ```
+>   127.0.0.1:6379> SETBIT str 1 1
+>   (integer) 1
+>   127.0.0.1:6379> GETBIT str 1
+>   (integer) 1
+>   127.0.0.1:6379> GET str
+>   "@"
+>   ```
+
+
+
+###### <font color = #1AA3FF>BIGCOUNT</font> key [start end]
+
+>   **说明：**统计字符串指定范围内，值为1的位的数量。默认情况下统计整个字符串。
+
+
+
+##### 操作类
+
+###### <font color = #1AA3FF>SETBIT</font> key offset value
+
+>   ![image-20210818140014544](markdown/Redis6.assets/image-20210818140014544.png)
+>
+>   **说明：**修改指定字符串在指定“位”的值。
+>
+>   **返回值：**指定位原来的值
+>
+>   ```
+>   127.0.0.1:6379> SETBIT bt 7 1
+>   (integer) 0
+>   127.0.0.1:6379> SETBIT bt 7 0
+>   (integer) 1
+>   ```
+>
+>   **注意：**
+>
+>   1.   offset值的有效范围：0 <= offset <= 2^32^-1
+>
+>   2.   value值的有效范围：0或1
+>
+>   3.   如果指定的key不存在，Redis会自动创建一个字符串；如果offset超出字符串的范围，==Redis会自动扩充字符串的长度==。因此，如果初次对某个key进行`SETBIT`命令时将offset设置的很大，命令的执行时间可能会比较长。例如，SETBIT newkey 2^32^-1 1
+>
+>   4.   ==Bitmaps是基于String的，因此可以配合String的命令实现一些操作==。例如，如果想要将某个key对应的bitmap的前8位的值设置成0100 0001，可以直接使用一个SET命令，从而避免使用8次BITSET命令：
+>
+>        ```
+>        127.0.0.1:6379> SET bitmap A
+>        OK
+>        127.0.0.1:6379> GETBIT bitmap 0
+>        (integer) 0
+>        127.0.0.1:6379> GETBIT bitmap 1
+>        (integer) 1
+>        127.0.0.1:6379> GETBIT bitmap 2
+>        (integer) 0
+>        127.0.0.1:6379> GETBIT bitmap 3
+>        (integer) 0
+>        127.0.0.1:6379> GETBIT bitmap 4
+>        (integer) 0
+>        127.0.0.1:6379> GETBIT bitmap 5
+>        (integer) 0
+>        127.0.0.1:6379> GETBIT bitmap 6
+>        (integer) 0
+>        127.0.0.1:6379> GETBIT bitmap 7
+>        (integer) 1
+>        ```
+>
+>        <img src="markdown/Redis6.assets/image-20210818144025850.png" alt="image-20210818144025850" style="zoom:67%;" />
+
+
+
+###### <font color = #1AA3FF>BITOP</font> and|or|not|xor destkey key [key]
+
+>   **说明：**bitop是一个复合操作， 它可以做多个Bitmaps的and（交集） 、 or（并集） 、 not（非） 、 xor（异或） 操作并将结果保存在destkey中。
+
+### 7.2 HyperLogLog（HLL）
 
 #### 7.2.1 简介
+
+工作中经常会遇到与统计相关的功能需求，例如统计网站PV（PageView，页面访问量），对此，使用Redis中String数据结构的`INCR`和`INCRBY`命令即可轻松实现。然而，当面对UV（UniqueVisitor，独立访客）、独立IP、所有记录数等需要去重和计数的问题时改如何解决？
+
+![image-20210818193400033](markdown/Redis6.assets/image-20210818193400033.png)
+
+上述统计集合中不重复元素的问题被称为==基数问题==。
+
+解决基数问题有很多种方案：
+
+1.   将数据存储在MySQL，使用 distinct count 进行统计
+2.   将数据存储在Redis，使用Hash、Set、Bitmaps等数据结构进行处理
+
+以上方案结果精确，<u>但是随着数据量不断提升，计算所占用的内存空间也将越来越大，过于庞大的数据集根本没法处理。</u>为此，Redis 6 新增了HyperLogLog数据类型，采用“精度换内存”的策略解决这个问题。
+
+![image-20210818194738144](markdown/Redis6.assets/image-20210818194738144.png)
+
+>   官方说明：
+>
+>   A HyperLogLog is a probabilistic data structure used in order to count unique things.
+>
+>   Usually counting unique items requires using an amount of memory proportional to the number of items you want to count, because you need to remember the elements you have already seen in the past in order to avoid counting them multiple times. 
+>
+>   
 
 #### 7.2.2 常用命令
 
