@@ -1,4 +1,4 @@
-# Redis 6
+# Rfu
 
 ---
 
@@ -2617,6 +2617,10 @@ Redis数据库可以存在任意数量的频道，Redis客户端可以订阅任�
 
 #### 7.1.1 简介
 
+![img](markdown/Redis6.assets/wps5.jpg)
+
+![img](markdown/Redis6.assets/wps6.jpg)
+
 官方原文：
 
 >   Bitmaps are not an actual data type, but a set of bit-oriented operations defined on the String type. Since strings are binary safe blobs and their maximum length is 512 MB, they are suitable to set up to 2^32 different bits.
@@ -2747,20 +2751,32 @@ BitMaps最大的优势在于，在某些场景下能够极大的<font color = re
 
 
 
-上述统计集合中不重复元素的问题被称为==基数问题==（基数在数学的集合论上是用来描述集合大小的一个概念）。
+上述统计集合中不重复元素的问题被称为==基数问题==。
+
+>   什么是基数？：基数在数学的集合论上是用来描述集合大小的一个概念，以数据集{1，2，3，4，3，2，1}为例，这个数据集的基数集为{1，2，3，4}，基数为5。
+
+
 
 解决基数问题有很多种方案：
 
 1.   将数据存储在MySQL，使用 distinct count 进行统计
 2.   将数据存储在Redis，使用Hash、Set、Bitmaps等数据结构进行处理
 
-以上方案结果精确，<u>但是随着数据量不断提升，计算所占用的内存空间将越来越大，过于庞大的数据集根本没法处理。</u>为此，Redis 6 新增了HyperLogLog数据类型，采用==“精度换内存”==的策略解决这个问题。
+以上方案结果精确，<u>但是随着数据量不断提升，计算所占用的内存空间将越来越大，过于庞大的数据集根本没法处理。</u>为此，Redis 6 新增了HyperLogLog数据类型，采用<font color = red>“精度换内存”</font>的策略解决这个问题。
 
 
 
 ![image-20210818194738144](markdown/Redis6.assets/image-20210818194738144.png)
 
-HLL适用于需要统计唯一数据，且对数据的精度要求不是特别高的场景。
+
+
+**HLL适用于需要统计唯一数据，但对精度要求不是特别高的场景。**
+
+Redis HyperLogLog 是用来做基数统计的算法，HyperLogLog 的优点是，在输入元素的数量或者体积非常非常大时，计算基数所需的空间总是固定 的、并且是很小的。
+
+在 Redis 里面，每个 HyperLogLog 键只需要花费 12 KB 内存，就可以计算接近 2^64 个不同元素的基 数。这和计算基数时，元素越多耗费内存就越多的集合形成鲜明对比。
+
+但是，因为 HyperLogLog 只会根据输入元素来计算基数，而不会储存输入元素本身，所以 HyperLogLog 不能像集合那样，返回输入的各个元素。
 
 >   **官方说明：**
 >
@@ -2803,7 +2819,7 @@ HLL适用于需要统计唯一数据，且对数据的精度要求不是特别�
 
 ###### <font color = #1AA3FF>PFCOUNT</font> key [key]
 
->   **说明：**获取HLL计算的集合基数估计值。估计值与实际值存在0.81%的标准误差。
+>   **说明：**获取HLL计算的集合基数估计值。
 
 ###### <font color = #1AA3FF>PFMERGE</font> destkey sourcekey [sourcekey …]
 
@@ -2824,18 +2840,141 @@ HLL适用于需要统计唯一数据，且对数据的精度要求不是特别�
 >   (integer) 8
 >   ```
 
-### 7.3 Geospatial
+### 7.3 Geospatial（Geo）
 
 #### 7.3.1 简介
 
+Redis GEO 主要用于存储地理位置信息，并对存储的信息进行操作，该功能在 Redis 3.2 版本新增。
+
+![经纬度](markdown/Redis6.assets/format,f_jpg)
+
 #### 7.3.2 常用命令
 
+##### 查询类
+
+###### <font color = #1AA3FF>GEOPOS</font> key member [member …]
+
+>   返回指定位置的经纬度，如果位置不存在则返回nil
+>
+>   ```
+>   127.0.0.1:6379> GEOADD china_city 120.20000 30.26667 hangzhou
+>   (integer) 1
+>   127.0.0.1:6379> GEOADD china_city 118.30000 26.08333 fuzhou
+>   (integer) 1
+>   127.0.0.1:6379> GEOADD china_city 116.41667 39.91667 beijing
+>   (integer) 1
+>   127.0.0.1:6379> GEOADD china_city 121.55333 31.20000 shanghai
+>   (integer) 1
+>   
+>   127.0.0.1:6379> GEOPOS china_city hangzhou beijing shanghai hainan
+>   1) 1) "120.20000249147415161"
+>      2) "30.2666706589875858"
+>   2) 1) "116.41667157411575317"
+>      2) "39.91667095273589183"
+>   3) 1) "121.55333250761032104"
+>      2) "31.20000061483705878"
+>   4) (nil)
+>   ```
+
+
+
+###### <font color = #1AA3FF>GEODIST</font> key member1 member2 [unit]
+
+>   返回两个位置的距离。计算出的距离会以双精度浮点数的形式被返回，如果指定的位置不存在则返回nil。
+>
+>   距离单位unit的可选值：m（米）、km（千米）、mi（英里）、ft（英尺），默认采用m作为距离单位。
+>
+>   **`GEODIST` 命令在计算距离时会假设地球为完美的球形， 在极限情况下， 这一假设最大会造成 0.5% 的误差。**
+>
+>   ```
+>   127.0.0.1:6379> GEOADD china_city 120.20000 30.26667 hangzhou
+>   (integer) 1
+>   127.0.0.1:6379> GEOADD china_city 118.30000 26.08333 fuzhou
+>   (integer) 1
+>   127.0.0.1:6379> GEOADD china_city 116.41667 39.91667 beijing
+>   (integer) 1
+>   127.0.0.1:6379> GEOADD china_city 121.55333 31.20000 shanghai
+>   (integer) 1
+>   
+>   127.0.0.1:6379> GEODIST china_city beijing shanghai km
+>   "1074.6630"
+>   127.0.0.1:6379> GEODIST china_city hangzhou shanghai km
+>   "165.8803"
+>   ```
+
+
+
+###### <font color = #1AA3FF>GEORADIUS</font> key 经度 维度 半径 单位 [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count]
+
+>   以给定经纬度为中心，查找半径范围内的其他位置。
+>
+>   距离单位unit的可选值：m（米）、km（千米）、mi（英里）、ft（英尺）
+>
+>   在给定以下可选项时， 命令会返回额外的信息：
+>
+>   -   `WITHDIST`: 在返回位置元素的同时， 将位置元素与中心之间的距离也一并返回。 距离的单位和用户给定的范围单位保持一致。
+>   -   `WITHCOORD`: 将位置元素的经度和维度也一并返回。
+>   -   `WITHHASH`: 以 52 位有符号整数的形式， 返回位置元素经过原始 geohash 编码的有序集合分值。 这个选项主要用于底层应用或者调试， 实际中的作用并不大。
+>
+>   命令默认返回未排序的位置元素。 通过以下两个参数， 用户可以指定被返回位置元素的排序方式：
+>
+>   -   `ASC`: 根据中心的位置， 按照从近到远的方式返回位置元素。
+>   -   `DESC`: 根据中心的位置， 按照从远到近的方式返回位置元素。
+>
+>   在默认情况下， GEORADIUS 命令会返回所有匹配的位置元素。 虽然用户可以使用 **COUNT `<count>`** 选项去获取前 N 个匹配元素， 但是因为命令在内部可能会需要对所有被匹配的元素进行处理， 所以在对一个非常大的区域进行搜索时， 即使只使用 `COUNT` 选项去获取少量元素， 命令的执行速度也可能会非常慢。 但是从另一方面来说， 使用 `COUNT` 选项去减少需要返回的元素数量， 对于减少带宽来说仍然是非常有用的。
+
+
+
+###### <font color = #1AA3FF>GEORADIUSBYMEMBER</font> key 经度 维度 半径 单位 [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count]
+
+>   以给定位置为中心，查找半径范围内的其他位置。
+
+
+
+###### <font color = #1AA3FF>GEOHASH</font> key member [member …]
+
+##### 操作类
+
+###### <font color = #1AA3FF>GEOADD</font> key 经度 维度 member [key 经度 维度 member …]
+
+>   将指定的地理空间位置（纬度、经度、名称）添加到指定的`key`中。==这些数据将会存储到Sorted Set==这样的目的是为了方便使用`GEORADIUS`或者`GEORADIUSBYMEMBER`命令对数据进行半径查询等操作。
+>
+>   该命令以采用标准格式的参数x,y,所以经度必须在纬度之前。这些坐标的限制是可以被编入索引的，区域面积可以很接近极点但是不能索引。具体的限制，由EPSG:900913 / EPSG:3785 / OSGEO:41001 规定如下：
+>
+>   -   有效的经度：-180° - 180°
+>   -   有效的纬度：-85.05112878° - 85.05112878°
+>
+>   当坐标位置超出上述指定范围时，该命令将会返回一个错误。
+>
+>   ```
+>   127.0.0.1:6379> GEOADD china_city 120.20000 30.26667 hangzhou
+>   (integer) 1
+>   127.0.0.1:6379> GEOADD china_city 118.30000 26.08333 fuzhou
+>   (integer) 1
+>   127.0.0.1:6379> GEOADD china_city 116.41667 39.91667 beijing
+>   (integer) 1
+>   127.0.0.1:6379> GEOADD china_city 121.55333 31.20000 shanghai
+>   (integer) 1
+>   ```
+
+
+
+
+
 ## 8. Jedis
+
+
+
+## 解决问题
+
+1.   附近的人、附近的车、附近的xxx
+2.   
 
 
 
 ## 参考资料
 
 1.   [尚硅谷2021Redis视频教程](https://www.bilibili.com/video/BV1Rv41177Af)
-2.   [Redis的五种数据类型底层实现原理是什么？](https://zhuanlan.zhihu.com/p/344918922)
-3.   [Redis redisObject 数据结构](https://segmentfault.com/a/1190000019980165)
+2.   [菜鸟Redis教程](https://www.runoob.com/redis/redis-tutorial.html)
+3.   [Redis的五种数据类型底层实现原理是什么？](https://zhuanlan.zhihu.com/p/344918922)
+4.   [Redis redisObject 数据结构](https://segmentfault.com/a/1190000019980165)
