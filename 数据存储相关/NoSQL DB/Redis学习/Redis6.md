@@ -2961,7 +2961,51 @@ Redis GEO 主要用于存储地理位置信息，并对存储的信息进行操�
 
 ## 8. Jedis
 
+1.  **关闭服务器防火墙**
 
+    
+
+2.  **修改Redis配置文件，开启远程访问**
+
+    ① 移除或数值原有的 `bind`配置项
+
+    ② 修改 `protected-mode`配置项的值为 no
+
+    ![image-20210819220605044](markdown/Redis6.assets/image-20210819220605044.png)
+
+    ③ 重启Redis
+
+    
+
+3.  **配置依赖文件**
+
+    ```xml
+    <dependency>
+        <groupId>redis.clients</groupId>
+        <artifactId>jedis</artifactId>
+        <version>2.7.1</version>
+    </dependency>
+    ```
+
+    
+
+4.  **简单使用**
+
+    ```java
+    // 创建连接
+    Jedis jedis = new Jedis("192.168.175.128", 6379);
+    
+    // 测试连接
+    if (!"PONG".equals(jedis.ping())) {
+        System.out.println("Redis连接失败");
+        return;
+    }
+    
+    // 简单使用
+    jedis.set("hi", "hello world!");
+    System.out.println(jedis.get("hi"));
+    ```
+Jedis提供了大量的API，允许通过Java操作Redis的所有命令。
 
 ## 参考资料
 
