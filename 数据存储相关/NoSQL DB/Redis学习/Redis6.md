@@ -1,4 +1,4 @@
-# Rfu
+# Redis 6
 
 ---
 
@@ -2959,7 +2959,7 @@ Redis GEO 主要用于存储地理位置信息，并对存储的信息进行操�
 
 
 
-## 8. Jedis
+## 8. Jedis 操作 Redis
 
 1.  **关闭服务器防火墙**
 
@@ -2977,7 +2977,7 @@ Redis GEO 主要用于存储地理位置信息，并对存储的信息进行操�
 
     
 
-3.  **配置依赖文件**
+3.  **引入依赖**
 
     ```xml
     <dependency>
@@ -3005,7 +3005,141 @@ Redis GEO 主要用于存储地理位置信息，并对存储的信息进行操�
     jedis.set("hi", "hello world!");
     System.out.println(jedis.get("hi"));
     ```
-Jedis提供了大量的API，允许通过Java操作Redis的所有命令。
+    Jedis提供了大量的API，允许通过Java操作Redis的所有命令。
+
+## 9. SpringBoot 整合 Redis
+
+1.  依赖文件
+
+    ```xml
+            <!--Redis-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-redis</artifactId>
+            </dependency>
+            <!--连接池-->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-pool2</artifactId>
+            </dependency>
+            <!--数据绑定-->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+            </dependency>
+    ```
+
+    
+
+2.  配置文件
+
+    ```yaml
+    spring:
+      redis:
+        # Redis服务器地址
+        host: 192.168.175.128
+        # Redis服务器连接端口号
+        port: 6379
+        # Redis数据库（默认为0）
+        database: 0
+        # 超时时间（毫秒）
+        timeout: 1800000
+        lettuce:
+          pool:
+            # 连接池最大连接数（负数表示没有限制）
+            max-active: 20
+            # 连接池最大空闲连接数
+            max-idle: 5
+            # 连接池最小空闲连接数
+            min-idle: 0
+            # 最长阻塞时间（负数表示没有限制）
+            max-wait: -1
+    
+    ```
+
+    
+
+3.  配置类
+
+    ```java
+    @EnableCaching
+    @Configuration
+    public class RedisConfig {
+    
+        @Bean
+        public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    
+            Jackson2JsonRedisSerializer<Object> objectJackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+            objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL);
+            objectJackson2JsonRedisSerializer.setObjectMapper(objectMapper);
+    
+            RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+            redisTemplate.setConnectionFactory(redisConnectionFactory);
+            // key序列化方式
+            redisTemplate.setKeySerializer(new StringRedisSerializer());
+            // value序列化方式
+            redisTemplate.setValueSerializer(objectJackson2JsonRedisSerializer);
+    
+            return redisTemplate;
+        }
+    
+        @Bean
+        public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
+    
+            Jackson2JsonRedisSerializer<Object> objectJackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+            objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL);
+            objectJackson2JsonRedisSerializer.setObjectMapper(objectMapper);
+    
+            // 配置序列化（解决乱码问题）、缓存过期时间
+            RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+                    .entryTtl(Duration.ofSeconds(600))
+                    .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                    .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(objectJackson2JsonRedisSerializer))
+                    .disableCachingNullValues();
+    
+            return RedisCacheManager.builder(redisConnectionFactory)
+                    .cacheDefaults(redisCacheConfiguration)
+                    .build();
+        }
+    }
+    ```
+
+4.  RedisTemplate
+
+    ```java
+    @SpringBootTest
+    @RunWith(SpringRunner.class)
+    class RedisTest {
+        @Autowired
+        private RedisTemplate<String, Object> redisTemplate;
+    
+        @Test
+        void test() {
+            redisTemplate.opsForValue().set("say", "hello world!");
+            System.out.println(redisTemplate.opsForValue().get("say"));
+        }
+    }
+    ```
+
+
+
+## 10. 事务
+
+## 11. 持久化
+
+### 11.1 AOF
+
+### 11.2 RDB
+
+## 12. 主从复制
+
+## 13. 集群
+
+
 
 ## 参考资料
 
