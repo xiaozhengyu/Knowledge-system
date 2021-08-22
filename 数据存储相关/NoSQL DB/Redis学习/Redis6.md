@@ -3009,29 +3009,29 @@ Redis GEO 主要用于存储地理位置信息，并对存储的信息进行操�
 
 ## 9. SpringBoot 整合 Redis
 
-1.  依赖文件
+1.  **依赖文件**
 
     ```xml
-            <!--Redis-->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-data-redis</artifactId>
-            </dependency>
-            <!--连接池-->
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-pool2</artifactId>
-            </dependency>
-            <!--数据绑定-->
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-            </dependency>
+    <!--Redis-->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+    <!--连接池-->
+    <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-pool2</artifactId>
+    </dependency>
+    <!--数据绑定-->
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+    </dependency>
     ```
 
     
 
-2.  配置文件
+2.  **配置文件**
 
     ```yaml
     spring:
@@ -3059,7 +3059,7 @@ Redis GEO 主要用于存储地理位置信息，并对存储的信息进行操�
 
     
 
-3.  配置类
+3.  **配置类**
 
     ```java
     @EnableCaching
@@ -3108,7 +3108,9 @@ Redis GEO 主要用于存储地理位置信息，并对存储的信息进行操�
     }
     ```
 
-4.  RedisTemplate
+    
+
+4.  **RedisTemplate**
 
     ```java
     @SpringBootTest
@@ -3124,10 +3126,188 @@ Redis GEO 主要用于存储地理位置信息，并对存储的信息进行操�
         }
     }
     ```
+    
+    
+
+## 10. [事务](https://redis.io/topics/transactions)
+
+### 10.1 Redis事务的定义
+
+MULTI、EXEC、DISCARD 和 WATCH 命令是 Redis 事务的基础。Redis 事务可以在一次执行多个命令（They allow the execution of a group of commands in a single step），并有以下两个重要保证：
+
+1.  隔离性：事务中的命令会被序列化并按顺序执行。事务的执行过程不会被其他其他客户端发送的命令请求所打断。
+2.  原子性：事务中的命令要么不处理，要么全部处理。
+
+从2.2版本开始，Redis支持以乐观锁（optimistic locking）的形式为上述两点提供保证，其方式类似于CAS（check-and-sete）操作。
 
 
 
-## 10. 事务
+### 10.2 Redis事务的使用
+
+![image-20210822144130016](markdown/Redis6.assets/image-20210822144130016.png)
+
+#### 10.2.1 <font color = #1AA3FF>MULTI</font>
+
+>   **说明：**标记一个事务块的开始。随后罗列的命令将在执行`EXEC`命令时作为一个原子操作。
+>
+>   `MULTI`命令执行后，客户端可以继续向服务器发送任意多条命令，<u>这些命令不会立即被执行，而是被放到一个队列中，当`EXEC`命令被调用后，队列中的命令才会被执行。</u>
+>
+>   另一方面，通过调用`DISCARD`命令，客户端可以清空事务队列，并放弃执行事务。
+>
+>   
+>
+>   **返回值：**始终为OK
+
+
+
+#### 10.2.2 <font color = #1AA3FF>EXEC</font>
+
+>   **说明：**执行事务队列中的每条命令，并将客户端连接状态恢复为正常状态。
+>
+>   <u>当使用`WATCH`命令时，`EXEC`命令只有在被监视的key没有被修改的情况下才会执行（`check-and-set`）。</u>
+>
+>   
+>
+>   **返回值：**事务队列中每条命令的返回值组成的队列。
+>
+>   当使用`WATCH`命令时，如果被监视的key已经被修改，EXEC命令返回NULL。
+
+```
+127.0.0.1:6379> keys *
+(empty array)
+127.0.0.1:6379> MULTI    # 开启事务
+OK
+127.0.0.1:6379(TX)> SET k1 123    # 罗列命令
+QUEUED
+127.0.0.1:6379(TX)> SET k2 456
+QUEUED
+127.0.0.1:6379(TX)> SET k3 abc
+QUEUED
+127.0.0.1:6379(TX)> SET k4 dfe
+QUEUED
+127.0.0.1:6379(TX)> EXEC    # 执行事务
+1) OK    # 返回事务队列中每个命令的返回值组成的队列
+2) OK
+3) OK
+4) OK
+127.0.0.1:6379> keys *
+1) "k4"
+2) "k3"
+3) "k1"
+4) "k2"
+```
+
+
+
+#### 10.2.3 <font color = #1AA3FF>DISCARD</font>
+
+>   **说明：**刷新事务队列，并将客户端连接状态恢复为正常状态。
+>
+>   当使用`WATCH`命令时，`DISCARD`命令将取消对所有key的监视。
+>
+>   
+>
+>   **返回值：**始终为OK
+
+```
+127.0.0.1:6379> keys *
+(empty array)
+127.0.0.1:6379> MULTI
+OK
+127.0.0.1:6379(TX)> SET k1 123
+QUEUED
+127.0.0.1:6379(TX)> SET k2 abc
+QUEUED
+127.0.0.1:6379(TX)> DISCARD
+OK
+127.0.0.1:6379> keys *
+(empty array)
+```
+
+
+
+
+
+### 10.3 Redis事务的冲突处理
+
+##### 10.3.1 <font color = #1AA3FF>WATCH</font> key [key …]
+
+>   **说明：**WATCH命令可以为Redis事务提供==乐观锁的 check-and-set （CSA）实现方式==。指定的key会被监视。在执行EXEC命令前存在key被修改的情况，那么整个事务将会被取消，执行EXEC命令将返回nil。
+>
+>   EXEC命令执行后，无论事务是否执行成功，对所有key的监视都会被取消。除此之外，当客户端连接断开时，该客户端对key的监视也会被取消。
+>
+>   
+>
+>   **返回值：**始终为OK
+
+![image-20210822135626236](markdown/Redis6.assets/image-20210822135626236.png)
+
+
+
+### 10.4 Redis事务的错误处理
+
+#### 10.4.1 Redis事务的错误场景
+
+![image-20210822144144592](markdown/Redis6.assets/image-20210822144144592.png)
+
+使用Redis事务时可能出现错误的场景有两种：
+
+1.  事务执行前：向事务队列插入命令时产生的错误，例如，命令的语法错误、服务器内存不足。==出现这种情况时，服务器会拒绝执行并放弃这个事务。==
+
+    ```
+    127.0.0.1:6379> MULTI
+    OK
+    127.0.0.1:6379(TX)> SET k1 123
+    QUEUED
+    127.0.0.1:6379(TX)> SET k2 
+    (error) ERR wrong number of arguments for 'set' command
+    127.0.0.1:6379(TX)> SET k2 456
+    QUEUED
+    127.0.0.1:6379(TX)> SET k3 abc
+    QUEUED
+    127.0.0.1:6379(TX)> EXEC
+    (error) EXECABORT Transaction discarded because of previous errors.
+    ```
+
+    
+
+2.  事务执行中：执行事务队列中命令时长生的错误，例如，命令的执行错误。==出现这种情况时，服务器会继续执行其他命令。==
+
+    **最重要的是记住这样一条， 即使事务中有某条/某些命令执行失败了， 事务队列中的其他命令仍然会继续执行 —— Redis 不会停止执行事务中的命令。**
+
+    ```
+    127.0.0.1:6379> MULTI
+    OK
+    127.0.0.1:6379(TX)> SET k1 123
+    QUEUED
+    127.0.0.1:6379(TX)> SET k2 abc
+    QUEUED
+    127.0.0.1:6379(TX)> INCR k2
+    QUEUED
+    127.0.0.1:6379(TX)> SET k3 efg
+    QUEUED
+    127.0.0.1:6379(TX)> SET k4 666
+    QUEUED
+    127.0.0.1:6379(TX)> EXEC
+    1) OK
+    2) OK
+    3) (error) ERR value is not an integer or out of range
+    4) OK
+    5) OK
+    ```
+
+#### 10.4.2 Redis事务为什么不支持回滚？
+
+如果你有使用关系式数据库的经验， 那么 “Redis 在事务失败时不进行回滚，而是继续执行余下的命令”这种做法可能会让你觉得有点奇怪。
+
+以下是这种做法的优点：
+
+-   Redis 命令只会因为错误的语法而失败（并且这些问题不能在入队时发现），或是命令用在了错误类型的键上面：这也就是说，从实用性的角度来说，失败的命令是由编程错误造成的，而这些错误应该在开发的过程中被发现，而不应该出现在生产环境中。
+-   因为不需要对回滚进行支持，所以 Redis 的内部可以保持简单且快速。
+
+有种观点认为 Redis 处理事务的做法会产生 bug ， 然而需要注意的是， 在通常情况下， 回滚并不能解决编程错误带来的问题。 举个例子， 如果你本来想通过 INCR 命令将键的值加上 1 ， 却不小心加上了 2 ， 又或者对错误类型的键执行了 INCR， 即使回滚也是没有办法处理这些情况的。
+
+
 
 ## 11. 持久化
 
