@@ -3226,8 +3226,6 @@ OK
 
 
 
-
-
 ### 10.3 Redis事务的冲突处理
 
 ##### 10.3.1 <font color = #1AA3FF>WATCH</font> key [key …]
@@ -3241,6 +3239,16 @@ OK
 >   **返回值：**始终为OK
 
 ![image-20210822135626236](markdown/Redis6.assets/image-20210822135626236.png)
+
+
+
+##### 10.3.2 [Lua脚本](https://redis.io/commands/eval)
+
+Redis使用单个Lua解释器去运行所有脚本（串行），并且，==Redis将保证脚本会以原子的方式执行（原子）：当某个脚本正在执行的时候，不会有其他脚本或Redis命令被执行。==这和使用MULTI、EXEC包围的事务很类似。
+
+另一方面，这也意味着，执行一个运行缓慢的脚本会严重影响Redis的吞吐量。
+
+Lua脚本可以用于解决使用WATCH时出现的库存遗留问题。
 
 
 
