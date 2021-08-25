@@ -3321,72 +3321,112 @@ Lua脚本可以用于解决使用WATCH时出现的库存遗留问题。
 
 官方文档：https://redis.io/topics/persistence
 
+Redis 提供了不同层次的持久化选项：
 
-
-**Redis 提供了多种层次的持久化选项：**
-
--   **No Persistence**：完全禁用持久化。数据只在Redis服务器运行时存在于内存。
--   **RDB**（Redis Database）：仅启用RDB。Redis服务器产生的数据集将被持久化到磁盘中的rdb文件，Redis服务器重启时使用rdb文件重建数据集。
--   **AOF**（Append Only File）：仅启用AOF。Redis服务器接到的写操作（write operation）将被持久化到磁盘，重启Redis服务器时使用aof文件重建数据集。
+-   **No Persistence**：完全禁用持久化。数据只在Redis服务器运行时存在于内存，Redis关闭后就会丢失。
+-   **RDB**（Redis Database）：仅启用RDB。将Redis服务器产生的数据集持久化到磁盘中的rdb文件，Redis服务器重启时读取rdb文件中记录的数据至内存，重建数据集。
+-   **AOF**（Append Only File）：仅启用AOF。将Redis服务器接到的写操作（write operation）持久化到磁盘zh中的aof文件，Redis服务器重启时读取并执行aof文件中记录的写操作，重建数据集。
 -   **RDB + AOF**：同时启用RDB和AOPF。数据集和写操作都将被持久化到磁盘，注意，在这种情况下，Redis服务器重启时，仅使用aof文件重建数据集，因为通常情况下AOF更能保证数据集的完整性。
 
+### 11.1 RDB
+
+#### 11.1.1 作用
+
+每隔一段时间，将内存中的数据存储到磁盘。
+
+>   **redis配置文件相关配置项：**
+>
+>   ```yaml
+>   # Save the DB to disk.
+>   #
+>   # save <seconds> <changes>
+>   #
+>   # Redis will save the DB if both the given number of seconds and the given
+>   # number of write operations against the DB occurred.
+>   #
+>   # Snapshotting can be completely disabled with a single empty string argument
+>   # as in following example:
+>   #
+>   # save ""
+>   #
+>   # Unless specified otherwise, by default Redis will save the DB:
+>   #   * After 3600 seconds (an hour) if at least 1 key changed
+>   #   * After 300 seconds (5 minutes) if at least 100 keys changed
+>   #   * After 60 seconds if at least 10000 keys changed
+>   #
+>   # You can set these explicitly by uncommenting the three following lines.
+>   #
+>   # save 3600 1
+>   # save 300 100
+>   # save 60 10000
+>   ```
+>
+>   默认情况下，Redis将数据集快照保存在名为dump.rdb的二进制文件。
+>
+>   通过修改配置文件，让Redis在**“N秒内至少完成M次写操作”**这一条件被满足时，自动保存一次数据集。另外，也可以调用`SAVE`或`BGSAVE`命令，手动让Redis进行数据集保存操作。
+>
+>   Redis的这种持久化方式被称为 `snapshotting`
 
 
-**RDB的优点：**
 
--   RDB非常适用于数据集的备份。因为它使用紧凑的单文件存储某个时间节点的数据集，比如你可以在每个小时报保存一下过去24小时内的数据，同时每天保存过去30天的数据，这样即使出了问题你也可以根据需求恢复到不同版本的数据集。
--   RDB非常适合灾难恢复。因为它使用紧凑的单文件存储数据集，可以很容易的传输到远程数据仓库。
--   RDB最大限度的保障了Redis的性能。因为Redis父进程会派生一个子线程来完成工作，父进程永远不会执行磁盘I/O或类似的操作。
--   RDB恢复大数据集的速度比AOF快。
+#### 11.1.2 实现原理、工作流程
 
+RDB的工作流程：
 
+1.  调用[fork()](https://linux.die.net/man/2/fork)方法创建子进程
+2.  子进程将数据集写入临时文件
+3.  使用临时文件替换旧的rdb文件
 
-**RDB的缺点：**
+上述 2、3 步骤所采用的方式被称为“**写时复制**”（copy-on-write）
 
--   如果想要最大限度的减少Redis在意外关闭的情况下丢失的数据，RDB不是一个好的选择。Redis要保存完整的数据集是一个繁重的工作，通常你会配置Redis每隔一段时间做一次完整的保存，这意味着如果发生宕机，你可能会丢失最近几分钟尚未来得及保存的数据。
--   RDB需要经常调用fork()，以便通过子线程将数据持久化到磁盘。fork()可能会比较耗时，如果数据集很大并且CPU的性能不是很好，可能导致Redis停止服务几毫秒甚至1秒。虽然AOF也需要调用fork()，但是你可以通过调整重写日志的频率，保证Redis的稳定性。
-
-
-
-**AOF的优点：**
-
--   使用AOF时Redis更稳定：你能够选择不同的fsync策略——关闭fsync、每秒fsync、每次操作fsync，采用默认的每秒fsync策略，Redis的性能依旧很好（fsync由后台线程处理，主线程负责全力处理客户端请求），即使出现故障，最多丢失1秒的数据。
-
-    >   fsync：fsync系统调用用于同步内存中所有已修改的文件数据至存储设备。
-
--   
+<img src="markdown/Redis6.assets/image-20210825222433291.png" alt="image-20210825222433291" style="zoom: 50%;" />
 
 
 
-**AOF的缺点：**
+#### 11.1.3 优缺点
+
+RDB的优点：
+
+-   RDB是Redis数据的一种非常紧凑的单文件时间点表示。RDB文件非常适合用于备份。例如，您可能希望在最近的24小时内每小时对 RDB 文件进行归档，并在30天内每天保存 RDB 快照。这使您可以在发生灾难时轻松地恢复不同版本的数据集。（官方原文如此，确实不好理解）
+-   RDB非常适合灾难恢复，它是一个可以传输到远程数据中心的紧凑文件
+-   <u>RDB最大限度的提高了Redis的性能</u>，因为持久化时Redis父进程唯一的工作是调用fork()方法创建一个子进程，之后的工作全部交由子进程处理。父进程永远不会执行磁盘I/O或类似操作
+-   <u>相比AOF，RDB恢复大数据集的速度更快</u>
 
 
 
-### 持久化方式
+RDB的缺点：
 
-#### RDB
+-   <u>相比AOF，RDB更容易丢失数据</u>。完整的保存一次数据集是非常繁重、费事的工作，通常会每隔5分钟或更久做一次完成的保存，如果发生宕机，可能会丢失最后几分钟的数据。
+-   RDB需要经常调用fork()方法创建子进程，当数据集比较大并且CPU性能不高的时候，fork()的执行时间可能会很长，从而导致Redis停止为客户端提供服务几毫秒甚至一秒。虽然AOF也需要调用fork()方法，但是你可以调整重写日志的频率，而无需在耐用性上进行权衡。（官方原文如此，我的理解：使用RDB方式进行数据备份，每次都需要重新保存完整的数据集，所以每一次备份都很耗时。但是为了降低丢失数据的概率，又不可能将RDB备份数据的频率调的很低，比如1天一次，真这么干的话宕机时可能会丢失1天的数据；AOF的话，每次都是追加数据，单次的工作量小很多，可以小步快走）
+-   磁盘空间消耗更大，因为数据需要存两份——rdb文件 + 临时文件
 
-使用
 
-##### 原理
+
+#### 11.1.4 实际使用
+
+详情见 [RDB实战.md](./Redis实战/Redis持久化：RDB和AOF.md)
+
+
+
+### 11.2 AOF
+
+#### 11.2.1 作用
+
+#### 11.2.2 实现原理、工作流程
 
 写时复制（coyp on write）
 
+日志重写（日志压缩）
 
+#### 11.2.3 优缺点
 
-#### AOF
+#### 11.2.4 实际使用
 
-使用
-
-##### 原理
-
-###### 写时复制（coyp on write）
-
-###### 日志重写
+详情见 [AOF实战.md](./Redis实战/Redis持久化：RDB和AOF.md)
 
 
 
-### 持久化决策
+
 
 #### 如何选择持久化方式？
 
