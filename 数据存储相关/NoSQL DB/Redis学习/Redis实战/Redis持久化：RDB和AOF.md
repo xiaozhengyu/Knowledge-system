@@ -41,7 +41,7 @@
 
 Redis触发RDB的条件：在`seconds`秒内，Redis执行<font color = red>写操作</font>的次数达到`changes`次。
 
-允许配置多个触发条件，默认情况下Redis配置了3个触发条件：1次/1小时、100次/5分钟、10000次/分钟
+允许配置多个触发条件，默认情况下Redis开启RDB并配置了3个触发条件：1次/1小时、100次/5分钟、10000次/分钟。通过配置 `save ""`可以关闭RDB。
 
 
 
@@ -233,12 +233,24 @@ for (int i = 0; i < 150; i++) {
 
 ![image-20210825172241325](markdown/Redis持久化：RDB和AOF.assets/image-20210825172241325.png)
 
-可以看出，本次重启Redis从rdb文件中加载的数据条数是150条，说明之后插入的3条数据没有保存到rdb文件。这体现出了RDB存在的缺点：**可能丢失最近一次SNAPSHOTTING之后的操作产生的数据。**
+可以看出，本次重启Redis从rdb文件中加载的数据条数是150条，说明之后插入的3条数据没有保存到rdb文件。这体现出了RDB存在的缺点：**可能丢失最近一次SNAPSHOTTING之后的操作产生的数据。另外，如果SNAPSHOTTING指定的过程中Redis发生宕机，本次SNAPSHOTTING的数据也会丢失。**
 
 
 
 ## AOF
 
+默认情况下，Redis不开启AOF。
+
 ### AOF配置信息
+
+打开Redis配置文件，通过搜索“APPEND ONLY MODE”，可以找到AOF的相关配置信息：
+
+```yaml
+############################## APPEND ONLY MODE ###############################
+```
+
+
+
+
 
 ### AOF使用流程
