@@ -249,8 +249,216 @@ for (int i = 0; i < 150; i++) {
 ############################## APPEND ONLY MODE ###############################
 ```
 
+#### 1. AOF开关
 
+```yaml
+# By default Redis asynchronously dumps the dataset on disk. This mode is
+# good enough in many applications, but an issue with the Redis process or
+# a power outage may result into a few minutes of writes lost (depending on
+# the configured save points).
+#
+# The Append Only File is an alternative persistence mode that provides
+# much better durability. For instance using the default data fsync policy
+# (see later in the config file) Redis can lose just one second of writes in a
+# dramatic event like a server power outage, or a single write if something
+# wrong with the Redis process itself happens, but the operating system is
+# still running correctly.
+#
+# AOF and RDB persistence can be enabled at the same time without problems.
+# If the AOF is enabled on startup Redis will load the AOF, that is the file
+# with the better durability guarantees.
+#
+# Please check https://redis.io/topics/persistence for more information.
+
+appendonly no
+```
+
+该配置项用于启动、关闭AOF功能。
+
+<u>默认情况下，Redis会开启RDB功能，关闭AOF功能</u>。RDB能够满足大多数应用场景，但是遇到突发故障时（例如，断电、宕机）可能会丢失几分钟的数据（取决于具体配置）。与之相比，AOF在可靠性上会更好一些，AOF能够保证遇到突发情况最多丢失一秒钟的数据（取决于具体配置，后文讲详细说明）。
+
+可以同时开启RDB和AOF功能，但是重启Redis时将优先使用aof文件恢复数据，因为aof记录的数据更可靠、更完整。
+
+#### 2. aof文件名
+
+```yaml
+# The name of the append only file (default: "appendonly.aof")
+
+appendfilename "appendonly.aof"
+```
+
+
+
+#### 3. AOF工作模式
+
+```yaml
+# The fsync() call tells the Operating System to actually write data on disk
+# instead of waiting for more data in the output buffer. Some OS will really flush
+# data on disk, some other OS will just try to do it ASAP.
+#
+# Redis supports three different modes:
+#
+# no: don't fsync, just let the OS flush the data when it wants. Faster.
+# always: fsync after every write to the append only log. Slow, Safest.
+# everysec: fsync only one time every second. Compromise.
+#
+# The default is "everysec", as that's usually the right compromise between
+# speed and data safety. It's up to you to understand if you can relax this to
+# "no" that will let the operating system flush the output buffer when
+# it wants, for better performances (but if you can live with the idea of
+# some data loss consider the default persistence mode that's snapshotting),
+# or on the contrary, use "always" that's very slow but a bit safer than
+# everysec.
+#
+# More details please check the following article:
+# http://antirez.com/post/redis-persistence-demystified.html
+#
+# If unsure, use "everysec".
+
+# appendfsync always
+appendfsync everysec
+# appendfsync no
+```
+
+[延迟写（delayed write）](..\..\..\..\方法论\延迟写.md): 传统的UNIX实现在内核中设有缓冲区高速缓存或页面高速缓存，大多数磁盘I/O都通过缓冲进行。  当将数据写入文件时，内核通常先将该数据复制到其中一个缓冲区中，如果该缓冲区尚未写满，则  并不将其排入输出队列，而是等待其写满或者当内核需要重用该缓冲区以便存放其他磁盘块数据时，  再将该缓冲排入到输出队列，然后待其到达队首时，才进行实际的I/O操作。这种输出方式就被称为延迟写。
+
+==延迟写减少了磁盘读写次数，但是却降低了文件内容的更新速度，使得欲写到文件中的数据在一段时间内并没有写到磁盘上。当系统发生故障时，这种延迟可能造成文件更新内容的丢失。==
+
+![image-20210827134331653](markdown/Redis持久化：RDB和AOF.assets/image-20210827134331653.png)
+
+为了保证磁盘上实际文件系统与缓冲区高速缓存中内容的一致性，unix系统提供了三个函数：sync、fsync、fdatasync。其中fsync会通知操作系统讲缓冲区的数据写入文件（即使缓冲区还没满），<font color = red>并且等待操作系统完成写入操作</font>（可能导致较长时间的阻塞）
+
+AOF支持三种工作模式：
+
+1.   no：不主动调用fsync，由操作系统觉得何时将缓冲区中的“append only log”写入磁盘的aof文件。
+2.   always：每记录一条“append only log”就调用一次fsync。
+3.   everysec：每秒最多调用一次fsync。
+
+| 工作模式 |    性能    |
+| :------: | :--------: |
+|    no    | 快，不安全 |
+|  always  |  慢，安全  |
+| everysec |    均衡    |
+
+
+
+#### 4. 动态调整工作模式
+
+```yaml
+# When the AOF fsync policy is set to always or everysec, and a background
+# saving process (a background save or AOF log background rewriting) is
+# performing a lot of I/O against the disk, in some Linux configurations
+# Redis may block too long on the fsync() call. Note that there is no fix for
+# this currently, as even performing fsync in a different thread will block
+# our synchronous write(2) call.
+#
+# In order to mitigate this problem it's possible to use the following option
+# that will prevent fsync() from being called in the main process while a
+# BGSAVE or BGREWRITEAOF is in progress.
+#
+# This means that while another child is saving, the durability of Redis is
+# the same as "appendfsync none". In practical terms, this means that it is
+# possible to lose up to 30 seconds of log in the worst scenario (with the
+# default Linux settings).
+#
+# If you have latency problems turn this to "yes". Otherwise leave it as
+# "no" that is the safest pick from the point of view of durability.
+
+no-appendfsync-on-rewrite no
+```
+
+如果将AOF的工作状态设置为always或everysec，线程可能因为调用fsync而长时间的阻塞。如果将本配置项设置为yes，Redis会在部分场景（主线程执行BGSAVE或BGREWRITEAOF命令时）暂时停止调用fsync。
+
+>   BGSAVE：创建子线程将数据集写入磁盘
+>
+>   BGREWRITEAOF：创建子线程执行AOF日志重写
+
+
+
+#### 5. 日志重写
+
+```yaml
+# Automatic rewrite of the append only file.
+# Redis is able to automatically rewrite the log file implicitly calling
+# BGREWRITEAOF when the AOF log size grows by the specified percentage.
+#
+# This is how it works: Redis remembers the size of the AOF file after the
+# latest rewrite (if no rewrite has happened since the restart, the size of
+# the AOF at startup is used).
+#
+# This base size is compared to the current size. If the current size is
+# bigger than the specified percentage, the rewrite is triggered. Also
+# you need to specify a minimal size for the AOF file to be rewritten, this
+# is useful to avoid rewriting the AOF file even if the percentage increase
+# is reached but it is still pretty small.
+#
+# Specify a percentage of zero in order to disable the automatic AOF
+# rewrite feature.
+
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+```
+
+如果当前aof文件大小超过`auto-aof-rewrite-min-size`，且满足下列条件时，Redis将自动进行日志重写：
+$$
+\frac{当前aof文件大小 - 上次日志重写时aof文件大小}{上次日志重写时aof文件大小} > auto-aof-rewrite-percentage\%
+$$
+
+
+#### 6. 异常处理
+
+```yaml
+# An AOF file may be found to be truncated at the end during the Redis
+# startup process, when the AOF data gets loaded back into memory.
+# This may happen when the system where Redis is running
+# crashes, especially when an ext4 filesystem is mounted without the
+# data=ordered option (however this can't happen when Redis itself
+# crashes or aborts but the operating system still works correctly).
+#
+# Redis can either exit with an error when this happens, or load as much
+# data as possible (the default now) and start if the AOF file is found
+# to be truncated at the end. The following option controls this behavior.
+#
+# If aof-load-truncated is set to yes, a truncated AOF file is loaded and
+# the Redis server starts emitting a log to inform the user of the event.
+# Otherwise if the option is set to no, the server aborts with an error
+# and refuses to start. When the option is set to no, the user requires
+# to fix the AOF file using the "redis-check-aof" utility before to restart
+# the server.
+#
+# Note that if the AOF file will be found to be corrupted in the middle
+# the server will still exit with an error. This option only applies when
+# Redis will try to read more data from the AOF file but not enough bytes
+# will be found.
+aof-load-truncated yes
+```
+
+重启Redis，加载aof文件，发现部分内容损坏：
+
+-   yes：抛出异常
+-   no：无视异常，继续向下读取数据
+
+
+
+#### 7. aof-use-rdb-preamble
+
+```yaml
+# When rewriting the AOF file, Redis is able to use an RDB preamble in the
+# AOF file for faster rewrites and recoveries. When this option is turned
+# on the rewritten AOF file is composed of two different stanzas:
+#
+#   [RDB file][AOF tail]
+#
+# When loading, Redis recognizes that the AOF file starts with the "REDIS"
+# string and loads the prefixed RDB file, then continues loading the AOF
+# tail.
+aof-use-rdb-preamble yes
+```
 
 
 
 ### AOF使用流程
+
+1.   修改配置文件，重启Redis
+2.   执行若干操作，重写Redis
+3.   验证
