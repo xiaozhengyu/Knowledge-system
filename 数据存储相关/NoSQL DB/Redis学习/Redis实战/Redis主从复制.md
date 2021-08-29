@@ -6,7 +6,7 @@
 
 
 
-## “一主二从”简单实现
+## 简单实现
 
 ![image-20210829223112751](markdown/Redis主从复制.assets/image-20210829223112751.png)
 
@@ -71,11 +71,13 @@ redis-server slave-6381.conf
     redis-cli -p 服务器端口号
     ```
 
-2.  设置Slave指向的Master
+2.  设置Slave指向的Master（也可以将命令写入配置文件）
 
     ```
     slaveof Master地址 Master端口号 
     ```
+    
+    
 
 Slave1配置Master：
 
@@ -118,3 +120,52 @@ OK
     ④无法在Slave插入数据
 
     ![image-20210829225208803](markdown/Redis主从复制.assets/image-20210829225208803.png)
+
+## 重点问题
+
+### 1. 一主二仆
+
+#### 重启Slave
+
+假如重启某个Slave：
+
+-   如果没有在配置文件中指定Master，重启后需要重新手动指定Master
+
+-   Slave重启后会重新同步Master的最新数据
+
+关闭Salve1前：
+
+![image-20210829232039163](markdown/Redis主从复制.assets/image-20210829232039163.png)
+
+关闭Slave1后Master产出若干新数据：
+
+<img src="markdown/Redis主从复制.assets/image-20210829232318649.png" alt="image-20210829232318649" style="zoom:67%;" />
+
+重启Slave1后：由于没有在配置文件设置Master，Slave1重启后并没有自动指向Master（小弟自己成大哥了）
+
+<img src="markdown/Redis主从复制.assets/image-20210829232438609.png" alt="image-20210829232438609" style="zoom:67%;" />
+
+Slave1手动指向Master后：重新从Master同步最新的数据
+
+<img src="markdown/Redis主从复制.assets/image-20210829232700161.png" alt="image-20210829232700161" style="zoom:67%;" />
+
+#### 重启Master
+
+假如重启某个Master：
+
+-   Master关闭后，Slave照常提供服务，且继续指向该Master（大哥永远是大哥）
+-   Master重启后，一切照旧
+
+### 2. 薪火相传
+
+Slave同样可以作为其他Slave的Master，接受其他Slave的连接和同步请求：
+
+![image-20210829234559588](markdown/Redis主从复制.assets/image-20210829234559588.png)
+
+![image-20210829234608866](markdown/Redis主从复制.assets/image-20210829234608866.png)
+
+优点：降低Master的压力
+
+缺点：一旦某个Slave宕机，后面的Slave就获取不到最新的数据
+
+### 3. 反客为主
