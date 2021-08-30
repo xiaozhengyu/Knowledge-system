@@ -125,7 +125,7 @@ OK
 
 ### 1. 一主二仆
 
-#### 重启Slave
+#### Slave宕机重启
 
 假如重启某个Slave：
 
@@ -149,7 +149,7 @@ Slave1手动指向Master后：重新从Master同步最新的数据
 
 <img src="markdown/Redis主从复制.assets/image-20210829232700161.png" alt="image-20210829232700161" style="zoom:67%;" />
 
-#### 重启Master
+#### Master宕机重启
 
 假如重启某个Master：
 
@@ -158,14 +158,45 @@ Slave1手动指向Master后：重新从Master同步最新的数据
 
 ### 2. 薪火相传
 
-Slave同样可以作为其他Slave的Master，接受其他Slave的连接和同步请求：
+所有Slave指向同一个Master的情况：
 
 ![image-20210829234559588](markdown/Redis主从复制.assets/image-20210829234559588.png)
 
+Slave同样可以作为其他Slave的Master，接受其他Slave的连接和同步请求：
+
 ![image-20210829234608866](markdown/Redis主从复制.assets/image-20210829234608866.png)
+
+![image-20210830122850119](markdown/Redis主从复制.assets/image-20210830122850119.png)
 
 优点：降低Master的压力
 
-缺点：一旦某个Slave宕机，后面的Slave就获取不到最新的数据
+缺点：一旦某个Slave宕机，后面的Slave就获取不到最新的数据。越末端的Slave数据越不可靠。
+
+![image-20210830123726930](markdown/Redis主从复制.assets/image-20210830123726930.png)
 
 ### 3. 反客为主
+
+正常的工作情况：
+
+![image-20210830124848281](markdown/Redis主从复制.assets/image-20210830124848281.png)
+
+此时如果Master宕机，可以通过命令将原本指向它的Slave切换成Master继续工作（大哥死了小弟上位）：
+
+
+
+![image-20210830124856297](markdown/Redis主从复制.assets/image-20210830124856297.png)
+
+**演示：**
+
+1.  Master宕机前：6379（Master）←6380（Slave）←6381（Slave）
+
+    ![image-20210830125414904](markdown/Redis主从复制.assets/image-20210830125414904.png)
+
+2.  切换6381为Master
+
+    ```
+    slaveof on one
+    ```
+
+    ![image-20210830125625070](markdown/Redis主从复制.assets/image-20210830125625070.png)
+
