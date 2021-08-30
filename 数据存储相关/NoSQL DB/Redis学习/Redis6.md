@@ -3508,13 +3508,53 @@ Redis 对于数据备份是非常友好的， 因为你可以在服务器运行�
 
 ### 12.1 实战
 
-[Redis主动复制.md](.\Redis实战\Redis主从复制.md)
+-   一主二从
+-   薪火相传
+-   反客为主
+-   哨兵模式
+
+[Redis主动复制实战.md](.\Redis实战\Redis主从复制.md)
 
 ### 12.2 原理
+
+Redis主从复制时有两种数据同步方式：全量同步、增量同步
+
+#### 全量同步
+
+Redis全量同步一般发生在Slave的初始化阶段，此时Slave需要将Master上的所有数据都复制一份。具体流程如下：
+
+1.  Slave连接上Master，发送SYNC命令
+2.  Master接收到SYNC命令，开始执行BGSAVE命令生成RDB文件，并使用缓冲区记录此后执行的所有写命令
+3.  Master完成执行BGSAVE命令后，向所有Slave发送rdb文件，并继续使用缓冲区记录在此期间执行的写命令
+4.  Slave接收到rdb文件后，丢弃旧数据，载入rdb数据
+5.  Master发送完rdb文件后，向Slave发送缓冲区中记录的写命令
+6.  Slave完成rdb数据的载入后，开始接收并执行来自Master缓冲区的写命令
+
+经过上述步骤，Slave就完成了数据初始化，开始接受客户端读请求。
+
+![image-20210830134356297](markdown/Redis6.assets/image-20210830134356297.png)
+
+#### 增量同步
+
+Redis增量同步是指Slave完成初始化工作并开始正常工作后，Master将写操作同步到Slave的过程：Master每执行一个写命令就会向Slave发送相同的写命令，Slave接受并执行该写命令。
+
+
+
+#### 同步策略
+
+主从刚连接的时候，进行全量同步；全量同步结束后，进行增量同步。当然，如果有需要Slave可以在任何时候发起全量同步。Redis的策略是，无论如何，优先尝试增量同步，如果不成功则尝试进行全量同步。
+
+
+
+#### 注意点
+
+如果同时重启多个Slave，可能导致Master IO 剧增，有可能导致宕机。
 
 
 
 ## 13. 集群
+
+
 
 
 
@@ -3524,3 +3564,4 @@ Redis 对于数据备份是非常友好的， 因为你可以在服务器运行�
 2.   [菜鸟Redis教程](https://www.runoob.com/redis/redis-tutorial.html)
 3.   [Redis的五种数据类型底层实现原理是什么？](https://zhuanlan.zhihu.com/p/344918922)
 4.   [Redis redisObject 数据结构](https://segmentfault.com/a/1190000019980165)
+5.   [详解：Redis的主从复制原理](https://www.sohu.com/a/282320434_100212268)
