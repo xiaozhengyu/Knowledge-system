@@ -12,6 +12,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="MavenImportPreferences">
     <option name="generalSettings">
@@ -36,7 +37,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../Workplace/hai/hai-server" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="Errors" />
@@ -53,6 +54,8 @@
       <updated>1627285761606</updated>
       <workItem from="1627285765434" duration="9000" />
       <workItem from="1627286507877" duration="86000" />
+      <workItem from="1630458842156" duration="171000" />
+      <workItem from="1630459429381" duration="100000" />
     </task>
     <servers />
   </component>
@@ -64,5 +67,10 @@
       <screen x="0" y="-1080" width="1549" height="840" />
     </state>
     <state x="555" y="-905" key="FileChooserDialogImpl/0.0.1549.840/0.-1080.1549.840@0.-1080.1549.840" timestamp="1627286591958" />
+    <state x="602" y="347" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1630459462798">
+      <screen x="0" y="0" width="1536" height="834" />
+    </state>
+    <state x="753" y="-643" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1536.834/0.-1080.1920.1050@0.-1080.1920.1050" timestamp="1630458863609" />
+    <state x="602" y="347" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1536.834/0.-1080.1920.1050@0.0.1536.834" timestamp="1630459462798" />
   </component>
 </project>
