@@ -3584,6 +3584,8 @@ Redis集群通过提供分区（partition）来提供一定程度的可用性（
 
 ### 13.2 Redis集群实战
 
+[Redis集群.md](.\Redis实战\Redis集群.md)
+
 
 
 ## 参考资料
