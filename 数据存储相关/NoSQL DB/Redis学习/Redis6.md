@@ -145,7 +145,7 @@ Redis = REmote DIctionary Server，Redis是一个开源的使用ANSI C语言编�
 
 -   支持高可用
 
-    可以使用主从复制，并且提供哨兵机制，保证服务器的高可用
+    可以使用主从复制（并且提供哨兵机制）、集群保证服务器的高可用
 
 -   客户端语言多
 
@@ -181,7 +181,7 @@ Redis使用了单线程架构和I/O多路复用模型来实现高性能的内存
 -   数据结构
     -   最新N个数据：通过List实现按照自然时间排序的数据
     -   排行榜：利用zSet（有序集合）
-    -   失效性数据，如短信验证码：Expire过期
+    -   时效性数据，如短信验证码：Expire过期
     -   计数器、秒杀：原子性
     -   去重：利用Set
     -   发布订阅消息系统：pub/sub模式
@@ -255,7 +255,7 @@ Redis使用了单线程架构和I/O多路复用模型来实现高性能的内存
 -   redis-benchmark：性能测试工具
 -   redis-check-aof：用于修复有问题的aof文件
 -   redis-check-rdb：用于修复有问题的rdb文件
--   redis-sentinel：redis集群使用
+-   redis-sentinel：哨兵，Redis主从使用
 -   ==redic-cli==：客户端，操作入口
 -   ==redis-server==：redis服务器启动命令
 
@@ -303,6 +303,8 @@ redis-server
     ```
 
     ![image-20210808151811533](markdown/Redis6.assets/image-20210808151811533.png)
+
+    redis-cli -p xxx：连接使用指定端口的Redis服务，默认情况下连接6379端口的Redis服务
 
 5.  关闭Redis
 
@@ -2772,9 +2774,9 @@ BitMaps最大的优势在于，在某些场景下能够极大的<font color = re
 
 **HLL适用于需要统计唯一数据，但对精度要求不是特别高的场景。**
 
-Redis HyperLogLog 是用来做基数统计的算法，HyperLogLog 的优点是，在输入元素的数量或者体积非常非常大时，计算基数所需的空间总是固定 的、并且是很小的。
+Redis HyperLogLog 是用来做基数统计的算法，HyperLogLog 的优点是，==在输入元素的数量或者体积非常非常大时，计算基数所需的空间总是固定的、并且是很小的==。
 
-在 Redis 里面，每个 HyperLogLog 键只需要花费 12 KB 内存，就可以计算接近 2^64 个不同元素的基 数。这和计算基数时，元素越多耗费内存就越多的集合形成鲜明对比。
+在 Redis 里面，每个 HyperLogLog 键只需要花费 12 KB 内存，就可以计算接近 2^64 个不同元素的基数。这和计算基数时，元素越多耗费内存就越多的集合形成鲜明对比。
 
 但是，因为 HyperLogLog 只会根据输入元素来计算基数，而不会储存输入元素本身，所以 HyperLogLog 不能像集合那样，返回输入的各个元素。
 
@@ -3598,7 +3600,7 @@ Redis集群通过提供分区（partition）来提供一定程度的可用性（
 
 ### 分布式锁
 
-
+[Redis分布式锁.md](.\Redis实战\Redis分布式锁.md)
 
 ## 参考资料
 
