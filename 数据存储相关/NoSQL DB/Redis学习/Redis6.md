@@ -3137,8 +3137,8 @@ Redis GEO 主要用于存储地理位置信息，并对存储的信息进行操�
 
 MULTI、EXEC、DISCARD 和 WATCH 命令是 Redis 事务的基础。Redis 事务可以在一次执行多个命令（They allow the execution of a group of commands in a single step），并有以下两个重要保证：
 
-1.  隔离性：事务中的命令会被序列化并按顺序执行。事务的执行过程不会被其他其他客户端发送的命令请求所打断。
-2.  原子性：事务中的命令要么不处理，要么全部处理。
+1.  **隔离性**：事务中的命令会被序列化并按顺序执行。事务的执行过程不会被其他其他客户端发送的命令请求所打断。
+2.  **原子性**：事务中的命令要么不处理，要么全部处理。
 
 从2.2版本开始，Redis支持以乐观锁（optimistic locking）的形式为上述两点提供保证，其方式类似于CAS（check-and-sete）操作。
 
@@ -3518,12 +3518,12 @@ Redis主从复制时有两种数据同步方式：全量同步、增量同步
 
 #### 全量同步
 
-Redis全量同步一般发生在Slave的初始化阶段，此时Slave需要将Master上的所有数据都复制一份。具体流程如下：
+Redis全量同步一般发生在Slave的初始化阶段（初次连接Master或重新连接Master），此时Slave需要将Master上的所有数据都复制一份。具体流程如下：
 
 1.  Slave连接上Master，发送SYNC命令
 2.  Master接收到SYNC命令，开始执行BGSAVE命令生成RDB文件，并使用缓冲区记录此后执行的所有写命令
-3.  Master完成执行BGSAVE命令后，向所有Slave发送rdb文件，并继续使用缓冲区记录在此期间执行的写命令
-4.  Slave接收到rdb文件后，丢弃旧数据，载入rdb数据
+3.  Master完成执行BGSAVE命令后，==向所有Slave发送rdb文件==，并继续使用缓冲区记录在此期间执行的写命令
+4.  <font color = red>Slave接收到rdb文件后，丢弃旧数据，载入rdb数据</font>
 5.  Master发送完rdb文件后，向Slave发送缓冲区中记录的写命令
 6.  Slave完成rdb数据的载入后，开始接收并执行来自Master缓冲区的写命令
 
@@ -3533,7 +3533,7 @@ Redis全量同步一般发生在Slave的初始化阶段，此时Slave需要将Ma
 
 #### 增量同步
 
-Redis增量同步是指Slave完成初始化工作并开始正常工作后，Master将写操作同步到Slave的过程：Master每执行一个写命令就会向Slave发送相同的写命令，Slave接受并执行该写命令。
+Redis增量同步是指Slave完成初始化工作并开始正常工作后，Master将写操作同步到Slave的过程：Master每执行一个写命令就会==向Slave发送相同的写命令==，Slave接受并执行该写命令。
 
 
 
