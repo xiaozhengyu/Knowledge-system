@@ -328,7 +328,7 @@ appendfsync everysec
 
 为了保证磁盘上实际文件系统与缓冲区高速缓存中内容的一致性，unix系统提供了三个函数：sync、fsync、fdatasync。其中fsync会通知操作系统讲缓冲区的数据写入文件（即使缓冲区还没满），<font color = red>并且等待操作系统完成写入操作</font>（可能导致较长时间的阻塞）
 
-AOF支持三种工作模式：
+**AOF支持三种工作模式**：
 
 1.   no：不主动调用fsync，由操作系统觉得何时将缓冲区中的“append only log”写入磁盘的aof文件。
 2.   always：每记录一条“append only log”就调用一次fsync。
