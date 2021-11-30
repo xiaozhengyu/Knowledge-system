@@ -308,3 +308,59 @@ public static void method1() {
     System.out.println(cat);
 }
 ```
+
+
+
+# 二、Spring容器是什么？
+
+## 1、单例池、BeanFactory、ApplicationContext
+
+### 1.1 单例模式、单例Bean、单例池
+
+什么是单例模式？
+
+>   简单的说就是通过一些手段使得==某个类在全局只存在一个对象==
+
+
+
+什么是单例 Bean ？
+
+>   简单的说就是通过一些手段使得==某个类具有某给名称的对象在 Spring 容器内只有一个==
+>
+>   ⚠ 单例Bean ≠ 单例模式：简单的说，单例模式更加严格，因为它直接将类的构造方法 private 了，没法手动创建对象；单例Bean则宽松很多——除了由 Spring 容器创建并管理对象，还可以手动创建对象。
+
+
+
+什么是单例池？
+
+>   ==单例池存在的意义就是实现单例 Bean==。
+>
+>   Spring 中单例池的实现：
+>
+>   ```java
+>   ConcurrentHashMap<String,Object> singletonObject; // beanName->singletonBean
+>   ```
+>
+>   单例池添加单例 Bean 的时机：
+>
+>   -   懒加载单例 Bean —— 初次使用的时候创建并添加
+>   -   非懒加载单例 Bean —— Spring 启动的时候创建并添加
+
+
+
+### 1.2 BeanFactory
+
+BeanFactory 相当于一个容器 —— 装有 Bean 定义信息（BeanDefiniton）、Bean（单例池）
+
+
+
+### 1.3 ApplicationContext
+
+ApplicationContext 间接继承了 BeanFactory，同时还继承了很多其他接口，因此，ApplicationContext 可以替换 BeanFactory，但 ApplicationContext 比 BeanFactory 强大
+
+
+
+![image-20211130230632471](markdown/Spring_周瑜.assets/image-20211130230632471.png)
+
+## 2、ApplicationContext 的分类
+
