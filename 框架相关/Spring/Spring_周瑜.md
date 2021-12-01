@@ -358,9 +358,111 @@ BeanFactory 相当于一个容器 —— 装有 Bean 定义信息（BeanDefinito
 
 ApplicationContext 间接继承了 BeanFactory，同时还继承了很多其他接口，因此，ApplicationContext 可以替换 BeanFactory，但 ApplicationContext 比 BeanFactory 强大
 
-
-
 ![image-20211130230632471](markdown/Spring_周瑜.assets/image-20211130230632471.png)
 
-## 2、ApplicationContext 的分类
+
+
+## 2、ApplicationContext 实现类的划分
+
+
+
+![image-20211201220933652](markdown/Spring_周瑜.assets/image-20211201220933652.png)
+
+
+
+### 划分角度：配置方式
+
+```java
+public static void method1() {
+    // 基于classpath的相对路径
+    ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("beanConfig.xml");
+    System.out.println(applicationContext.getBean(UserService.class));
+}
+
+public static void method2() {
+    // 基于工程的相对路径
+    FileSystemXmlApplicationContext applicationContext1 = new FileSystemXmlApplicationContext("demo2\\src\\main\\resources\\beanConfig.xml");
+    System.out.println(applicationContext1.getBean(UserService.class));
+
+
+    // 文件系统绝对路径
+    FileSystemXmlApplicationContext applicationContext2 = new FileSystemXmlApplicationContext("E:\\Programing\\spring-learning\\spring-zhouyu\\demo2\\src\\main\\resources\\beanConfig.xml");
+    System.out.println(applicationContext2.getBean(UserService.class));
+}
+
+public static void method3() {
+    // 基于Java配置类
+    AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(BeanConfig.class);
+    System.out.println(applicationContext.getBean(UserService.class));
+}
+```
+
+>   什么是classpath？
+>
+>   ![image-20211201221511404](markdown/Spring_周瑜.assets/image-20211201221511404.png)
+>
+>   
+>
+>   什么是工程路径？什么是工程相对路径？
+>
+>   ![image-20211201221714218](markdown/Spring_周瑜.assets/image-20211201221714218.png)
+
+
+
+### 划分角度：是否支持刷新（refresh）
+
+```java
+/**
+ * 支持刷新与不支持刷新的Spring容器
+ */
+private static void method1() {
+    // 支持刷新
+    ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext("beanConfig.xml");
+    classPathXmlApplicationContext.refresh();
+
+    // 不支持刷新
+    AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext(BeanConfig.class);
+    annotationConfigApplicationContext.refresh();
+
+    /*
+     * 比较两个类的继承体系：
+     *     ClassPathXmlApplicationContext        -> (...) -> AbstractRefreshableApplicationContext -> (...) -> AbstractApplicationContext
+     *     AnnotationConfigApplicationContext    -> GenericApplication                                      -> AbstractApplicationContext
+     *
+     * 查看源码可以发现：
+     *     1. refresh() 定义于 AbstractApplicationContext
+     *     2. refresh() 调用 refreshBeanFactory() 来刷新 Spring 容器
+     *     3. refreshBeanFactory() 是一个抽象方法，交由子类实现
+     *     4. GenericApplication 在 refreshBeanFactory() 中禁用了刷新功能；AbstractRefreshableApplicationContext 在 refreshBeanFactory() 中支持了刷新功能
+     */
+}
+
+/**
+ * Spring容器支持刷新会有什么用处？
+ */
+private static void method2() {
+    ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("beanConfig.xml");
+
+    // 可以观察到刷新后从Spring容器中获取到的单例Bean变了（底层原理：单例池被重新创建）
+    System.out.println(applicationContext.getBean(UserService.class));
+    System.out.println(applicationContext.getBean(UserService.class));
+    System.out.println(applicationContext.getBean(UserService.class));
+    applicationContext.refresh();
+    System.out.println(applicationContext.getBean(UserService.class));
+    System.out.println(applicationContext.getBean(UserService.class));
+    System.out.println(applicationContext.getBean(UserService.class));
+
+    /*
+     * 更高级一些的功能：在程序的运行过程中，修改XML文件中的Bean定义，然后刷新Spring容器...
+     */
+}
+```
+
+AnnotationConfigApplicationContext 与 ClassPathXmlApplicationContext 的继承体系：
+
+![image-20211201222917644](markdown/Spring_周瑜.assets/image-20211201222917644.png)
+
+从源码层面解释 AnnotationConfigApplicationContext 为什么不支持刷新：
+
+![image-20211201222642531](markdown/Spring_周瑜.assets/image-20211201222642531.png)
 
