@@ -466,3 +466,5 @@ AnnotationConfigApplicationContext 与 ClassPathXmlApplicationContext 的继承�
 
 ![image-20211201222642531](markdown/Spring_周瑜.assets/image-20211201222642531.png)
 
+# 三、Spring的生命周期
+
