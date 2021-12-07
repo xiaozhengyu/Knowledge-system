@@ -1,4 +1,6 @@
-# 一、你知道几种定义Bean的方式
+[TOC]
+
+# 一、你知道几种定义Bean的方式？
 
 >    JavaBean、SpringBean、对象
 >
@@ -468,3 +470,26 @@ AnnotationConfigApplicationContext 与 ClassPathXmlApplicationContext 的继承�
 
 # 三、Spring的生命周期
 
+![image-20211207223842358](markdown/Spring_周瑜.assets/image-20211207223842358.png)
+
+# 四、Spring有几种依赖注入的方式？
+
+## 1、 手动注入
+
+### A. \<property/> + Setter
+
+
+
+
+
+### B. \<constructor-arg/> + Constructor
+
+
+
+
+
+## 2、 自动注入
+
+### A. \<bean autowire = “xxx”>
+
+### B. @Autowired
