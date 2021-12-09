@@ -470,26 +470,748 @@ AnnotationConfigApplicationContext 与 ClassPathXmlApplicationContext 的继承�
 
 # 三、Spring的生命周期
 
-![image-20211207223842358](markdown/Spring_周瑜.assets/image-20211207223842358.png)
+![image-20211209151646983](markdown/Spring_周瑜.assets/image-20211209151646983.png)
 
 # 四、Spring有几种依赖注入的方式？
 
 ## 1、 手动注入
 
+![image-20211209151708099](markdown/Spring_周瑜.assets/image-20211209151708099.png)
+
 ### A. \<property/> + Setter
 
+通过<bean/>标签的<property/>子标签配合Java类的Set方法来实现依赖注入的手动设置
 
+java类：
+
+```java
+/**
+ * 依赖注入的方式：<property/> + set方法
+ *
+ * @author xzy
+ * @date 2021/12/6 21:50
+ */
+@Slf4j
+@ToString
+public class AaaServiceImpl {
+
+    /*
+     * 通过<property>标签能够为Bean的属性手动设置注入的值：
+     *
+     * <bean id="xxx" class="xxx">
+     *     <property name="xxx" ref="xxx">
+     * </bean>
+     *
+     */
+
+    private BookService bookService;
+    private CourseService courseService;
+    private SchoolService schoolService;
+    private TeacherService teacherService;
+
+    /*
+     * 工作过程：
+     *     Spring容器根据<property>标签中的name属性到Bean中寻找Set方法——方法名为setXxx()且参数个数为1，
+     *     然后调用set方法将<property>标签中ref属性指定的依赖注入Bean。如果没有找到符合条件的set方法则抛出
+     *     异常。
+     *
+     */
+
+    public AaaServiceImpl() {
+        log.info("实例化 => AaaServiceImpl()");
+    }
+
+    public void setBookService(BookService bookService) {
+        this.bookService = bookService;
+        log.info("依赖注入 -> {}", bookService);
+    }
+
+    public void setCourseService(CourseService courseService) {
+        this.courseService = courseService;
+        log.info("依赖注入 -> {}", courseService);
+    }
+
+    public void setSchoolService(SchoolService schoolService) {
+        this.schoolService = schoolService;
+        log.info("依赖注入 -> {}", schoolService);
+    }
+
+    public void setTeacherService(TeacherService teacherService) {
+        this.teacherService = teacherService;
+        log.info("依赖注入 -> {}", teacherService);
+    }
+}
+```
+
+```java
+/**
+ * 依赖注入的方式：<property/> + set方法
+ *
+ * @author xzy
+ * @date 2021/12/6 11:00
+ */
+@Slf4j
+public class Main {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("a/beanWired.xml");
+        System.out.println(applicationContext.getBean(AaaServiceImpl.class));
+    }
+}
+```
+
+xml文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="bookService" class="com.xzy.service.impl.BookServiceImpl"/>
+    <bean id="bookService2" class="com.xzy.service.impl.BookServiceImpl"/>
+    <bean id="courseService" class="com.xzy.service.impl.CourseServiceImpl"/>
+    <bean id="courseService2" class="com.xzy.service.impl.CourseServiceImpl"/>
+    <bean id="schoolService" class="com.xzy.service.impl.SchoolServiceImpl"/>
+    <bean id="schoolService2" class="com.xzy.service.impl.SchoolServiceImpl"/>
+    <bean id="teacherService" class="com.xzy.service.impl.TeacherServiceImpl"/>
+    <bean id="teacherService2" class="com.xzy.service.impl.TeacherServiceImpl"/>
+
+    <!--
+    通过<property>标签能够手动为指定的Bean属性设置注入的值。Spring容器会根据<property>标签的name属性寻找
+    对应的Set方法：方法名为setXxx()，且参数只有一个。然后将手动设置的值通过set方法注入Bean
+    -->
+    <bean id="aaaService" class="com.xzy.a.AaaServiceImpl">
+        <property name="bookService" ref="bookService"/>
+        <property name="courseService" ref="courseService2"/>
+        <property name="schoolService" ref="schoolService"/>
+        <property name="teacherService" ref="teacherService2"/>
+    </bean>
+
+</beans>
+```
+
+结构示意图：
+
+![image-20211209143137058](markdown/Spring_周瑜.assets/image-20211209143137058.png)
+
+工作流程图：
+
+![image-20211209143702830](markdown/Spring_周瑜.assets/image-20211209143702830.png)
+
+测试：
+
+1.   正常执行
+
+     根据上文配置运行代码
+
+     ![image-20211209143937163](markdown/Spring_周瑜.assets/image-20211209143937163.png)
+
+2.   Set方法不存在
+
+     移除Set方法，然后运行代码
+
+     ![image-20211209144201536](markdown/Spring_周瑜.assets/image-20211209144201536.png)
+
+3.   依赖的Bean不存在
+
+     配置不存在的Bean，然后运行代码
+
+     ![image-20211209144248855](markdown/Spring_周瑜.assets/image-20211209144248855.png)
 
 
 
 ### B. \<constructor-arg/> + Constructor
 
+通过<bean/>标签的<constructor-arg/>子标签配合Java类的构造方法来实现依赖注入的手动设置
 
+java类：
 
+```java
+/**
+ * 依赖注入的方式：<constructor-arg/> + 构造方法
+ *
+ * @author xzy
+ * @date 2021/12/6  22:17
+ */
+@Slf4j
+public class BbbServiceImpl {
+    private BookService bookService;
+    private CourseService courseService;
+    private SchoolService schoolService;
+    private TeacherService teacherService;
 
+    /**
+     * Spring容器根据 <constructor-arg/>标签到Bean容器中寻找构造方法，
+     * 如果找不到则抛出异常，如果找得到则调用构造方法注入指定的依赖
+     */
+
+    public BbbServiceImpl() {
+        log.info("实例化 => BbbServiceImpl()");
+    }
+
+    public BbbServiceImpl(BookService bookService, CourseService courseService) {
+        this.bookService = bookService;
+        this.courseService = courseService;
+        log.info("实例化 => BbbServiceImpl({}, {}})", bookService, courseService);
+    }
+
+    public void setSchoolService(SchoolService schoolService) {
+        this.schoolService = schoolService;
+        log.info("依赖注入 --> setSchoolService({})", schoolService);
+    }
+
+    public void setTeacherService(TeacherService teacherService) {
+        this.teacherService = teacherService;
+        log.info("依赖注入 --> setTeacherService({})", teacherService);
+    }
+}
+```
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("b/beanWired.xml");
+        System.out.println(applicationContext.getBean(BbbServiceImpl.class));
+    }
+}
+```
+
+xml文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="bookService1" class="com.xzy.service.impl.BookServiceImpl"/>
+    <bean id="bookService2" class="com.xzy.service.impl.BookServiceImpl"/>
+    <bean id="courseService1" class="com.xzy.service.impl.CourseServiceImpl"/>
+    <bean id="courseService2" class="com.xzy.service.impl.CourseServiceImpl"/>
+    <bean id="schoolService1" class="com.xzy.service.impl.SchoolServiceImpl"/>
+    <bean id="schoolService2" class="com.xzy.service.impl.SchoolServiceImpl"/>
+    <bean id="teacherService1" class="com.xzy.service.impl.TeacherServiceImpl"/>
+    <bean id="teacherService2" class="com.xzy.service.impl.TeacherServiceImpl"/>
+
+    <!--
+    通过<constructor-arg>标签手动设置调用Bean的构造方法时注入的依赖
+    -->
+    <bean id="bbbService" class="com.xzy.b.BbbServiceImpl">
+        <constructor-arg index="0" ref="bookService1"/>
+        <constructor-arg index="1" ref="courseService2"/>
+        <property name="teacherService" ref="teacherService1"/>
+        <property name="schoolService" ref="schoolService2"/>
+    </bean>
+
+</beans>
+```
+
+结构示意图：
+
+![image-20211209145647273](markdown/Spring_周瑜.assets/image-20211209145647273.png)
+
+工作流程图：
+
+![image-20211209150114616](markdown/Spring_周瑜.assets/image-20211209150114616.png)
+
+测试：
+
+1.   正常执行
+
+     根据上文配置运行代码
+
+     ![image-20211209150249344](markdown/Spring_周瑜.assets/image-20211209150249344.png)
+
+2.   找不到匹配的构造方法
+
+     ![image-20211209150400809](markdown/Spring_周瑜.assets/image-20211209150400809.png)
+
+3.   找不到匹配的依赖
+
+     ![image-20211209150438410](markdown/Spring_周瑜.assets/image-20211209150438410.png)
 
 ## 2、 自动注入
 
+![image-20211209151736693](markdown/Spring_周瑜.assets/image-20211209151736693.png)
+
 ### A. \<bean autowire = “xxx”>
 
+通过<bean/>标签的autowire属性配合Java类的Set方法、构造方法来实现依赖自动注入
+
+#### a. byType + Set方法
+
+java类：
+
+```java
+/**
+ * 依赖注入的方式：<bean autowire="byType"/> + set方法
+ *
+ * @author xzy
+ * @date 2021/12/6  22:35
+ */
+@Slf4j
+@ToString
+public class ByTypeSetterServiceImpl {
+    private BookService bookService;
+    private CourseService courseService;
+    private SchoolService schoolService;
+    private TeacherService teacherService;
+
+    public ByTypeSetterServiceImpl() {
+        log.info("实例化 => ByTypeSetterServiceImpl()");
+    }
+
+    /*
+     * byType + Setter：
+     *     1、遍历Bean中的所有Setter
+     *     2、尝试根据Setter参数的类型从容器中寻找依赖
+     *     3、如果能够找到唯一的一个Bean，调用Setter完成依赖注入；如果能够找到多个Bean，抛出异常
+     */
+
+    public void setBookService(BookService bookService) {
+        this.bookService = bookService;
+        log.info("依赖注入 --> setBookService({})", bookService);
+    }
+
+    public void setCourseService(CourseService courseService) {
+        this.courseService = courseService;
+        log.info("依赖注入 --> setCourseService({})", courseService);
+    }
+
+    public void setSchoolService(SchoolService schoolService) {
+        this.schoolService = schoolService;
+        log.info("依赖注入 --> setSchoolService({})", schoolService);
+    }
+
+    public void setTeacherService(TeacherService teacherService) {
+        this.teacherService = teacherService;
+        log.info("依赖注入 --> setTeacherService({})", teacherService);
+    }
+
+    /*
+     * Spring会将满足下列条件的方法视为Setter；
+     *     1.方法名setXxx()  2.有且只有一个参数
+     *
+     * 因此，是要能够在容器中找到唯一的TeacherService类的Bean，下面的方法就会被调用
+     */
+
+    public void setTeacherService123(TeacherService teacherService) {
+        this.teacherService = teacherService;
+        log.info("依赖注入 --> setTeacherService123({})", teacherService);
+    }
+}
+```
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("c/byTypeBeanWired.xml");
+        System.out.println(applicationContext.getBean(ByTypeSetterServiceImpl.class));
+    }
+}
+```
+
+xml文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="bookService1" class="com.xzy.service.impl.BookServiceImpl"/>
+    <!--    <bean id="bookService2" class="com.xzy.service.impl.BookServiceImpl"/>-->
+    <bean id="courseService1" class="com.xzy.service.impl.CourseServiceImpl"/>
+    <!--    <bean id="courseService2" class="com.xzy.service.impl.CourseServiceImpl"/>-->
+    <!--    <bean id="schoolService1" class="com.xzy.service.impl.SchoolServiceImpl"/>-->
+    <!--    <bean id="schoolService2" class="com.xzy.service.impl.SchoolServiceImpl"/>-->
+    <bean id="teacherService1" class="com.xzy.service.impl.TeacherServiceImpl"/>
+    <!--    <bean id="teacherService2" class="com.xzy.service.impl.TeacherServiceImpl"/>-->
+
+    <bean id="byTypeService" class="com.xzy.c.ByTypeSetterServiceImpl" autowire="byType"/>
+
+</beans>
+```
+
+结构示意图：
+
+（匹配到唯一的Bean、匹配不到Bean）
+
+![image-20211209154925517](markdown/Spring_周瑜.assets/image-20211209154925517.png)
+
+（匹配到多个Bean）
+
+![image-20211209160517058](markdown/Spring_周瑜.assets/image-20211209160517058.png)
+
+工作流程图：
+
+![image-20211209160626711](markdown/Spring_周瑜.assets/image-20211209160626711.png)
+
+测试：
+
+1.   找不到Bean、找到唯一的Bean
+
+     根据上文配置运行代码
+
+     ![image-20211209155241080](markdown/Spring_周瑜.assets/image-20211209155241080.png)
+
+     可以看到，只要是能够根据参数类型找到唯一Bean的Set方法都会被调用，没有找到Bean的Set方法不会被调用。
+
+2.   找到多个Bean
+
+     修改XML配置，然后运行代码
+
+     ```xml
+     <beans xmlns="http://www.springframework.org/schema/beans"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+     
+         <bean id="bookService1" class="com.xzy.service.impl.BookServiceImpl"/>
+         <!--    <bean id="bookService2" class="com.xzy.service.impl.BookServiceImpl"/>-->
+         <bean id="courseService1" class="com.xzy.service.impl.CourseServiceImpl"/>
+         <bean id="courseService2" class="com.xzy.service.impl.CourseServiceImpl"/>
+         <!--    <bean id="courseService2" class="com.xzy.service.impl.CourseServiceImpl"/>-->
+         <!--    <bean id="schoolService1" class="com.xzy.service.impl.SchoolServiceImpl"/>-->
+         <!--    <bean id="schoolService2" class="com.xzy.service.impl.SchoolServiceImpl"/>-->
+         <bean id="teacherService1" class="com.xzy.service.impl.TeacherServiceImpl"/>
+         <!--    <bean id="teacherService2" class="com.xzy.service.impl.TeacherServiceImpl"/>-->
+     
+         <bean id="byTypeService" class="com.xzy.c.ByTypeSetterServiceImpl" autowire="byType"/>
+     
+     </beans>
+     ```
+
+     ![image-20211209160806663](markdown/Spring_周瑜.assets/image-20211209160806663.png)
+
+#### b. byName + Set方法
+
+java类：
+
+```java
+@Slf4j
+@ToString
+public class ByNameSetterServiceImpl {
+    private BookService bookService;
+    private CourseService courseService;
+    private SchoolService schoolService;
+    private TeacherService teacherService;
+
+    public ByNameSetterServiceImpl() {
+        log.info("实例化 => ByNameSetterServiceImpl()");
+    }
+
+    /*
+     * byName + setter：
+     *     1. 遍历Bean中所有的set方法
+     *     2. 解析set方法的名称，获取需要注入的bean的beanName
+     *     3. 尝试根据beanName从容器中寻找Bean。如果找不到Bean，放弃调用set方法；如果能够找到Bean，调用set方法完成依赖注入；
+     */
+
+    /**
+     * beanName：bookService1
+     *
+     */
+    public void setBookService1(BookService bookService) {
+        this.bookService = bookService;
+        log.info("依赖注入 --> setBookService({})", bookService);
+    }
+
+    /**
+     * beanName：courseService2
+     *
+     */
+    public void setCourseService2(CourseService courseService) {
+        this.courseService = courseService;
+        log.info("依赖注入 --> setCourseService({})", courseService);
+    }
+
+    /**
+     * beanName：schoolService1
+     *
+     */
+    public void setSchoolService1(SchoolService schoolService) {
+        this.schoolService = schoolService;
+        log.info("依赖注入 --> setSchoolService({})", schoolService);
+    }
+
+    /**
+     * beanName：teacherService2
+     *
+     */
+    public void setTeacherService2(TeacherService teacherService) {
+        this.teacherService = teacherService;
+        log.info("依赖注入 --> setTeacherService({})", teacherService);
+    }
+
+    /**
+     * beanName：teacherService123
+     *
+     */
+    public void setTeacherService123(TeacherService teacherService) {
+        this.teacherService = teacherService;
+        log.info("依赖注入 --> setTeacherService123");
+    }
+}
+```
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("c/byNameBeanWired.xml");
+        System.out.println(applicationContext.getBean(ByNameSetterServiceImpl.class));
+    }
+}
+```
+
+xml文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="bookService1" class="com.xzy.service.impl.BookServiceImpl"/>
+    <bean id="bookService2" class="com.xzy.service.impl.BookServiceImpl"/>
+    <bean id="courseService1" class="com.xzy.service.impl.CourseServiceImpl"/>
+    <bean id="courseService2" class="com.xzy.service.impl.CourseServiceImpl"/>
+    <bean id="schoolService1" class="com.xzy.service.impl.SchoolServiceImpl"/>
+    <bean id="schoolService2" class="com.xzy.service.impl.SchoolServiceImpl"/>
+    <bean id="teacherService1" class="com.xzy.service.impl.TeacherServiceImpl"/>
+    <bean id="teacherService2" class="com.xzy.service.impl.TeacherServiceImpl"/>
+
+    <bean id="byNameService" class="com.xzy.c.ByNameSetterServiceImpl" autowire="byName"/>
+
+</beans>
+```
+
+结构示意图：
+
+![image-20211209165432172](markdown/Spring_周瑜.assets/image-20211209165432172.png)
+
+工作流程图：
+
+![image-20211209165442625](markdown/Spring_周瑜.assets/image-20211209165442625.png)
+
+测试：
+
+以上文配置运行代码
+
+![image-20211209165651542](markdown/Spring_周瑜.assets/image-20211209165651542.png)
+
+#### c. constructor + 构造方法
+
+java类：
+
+```java
+/**
+ * 自动依赖注入的方式：<bean autowire="constructor"/> + 构造方法
+ *
+ * @author xzy
+ * @date 2021/12/711:39
+ */
+@Slf4j
+public class ConsServiceImpl {
+    private BookService bookService;
+    private CourseService courseService;
+    private SchoolService schoolService;
+    private TeacherService teacherService;
+
+    /*
+     * <bean autowire="constructor"/> + 构造方法 ：
+     *     1.遍历Bean的构造方法：参数列表长的先遍历
+     *     2.根据参数列表中参数的类型到Spring容器中寻找Bean
+     *         如果每个参数都能找到唯一的Bean，那么调用当前构造方法完成依赖注入，
+     *         否则跳过当前构造方法，检查下一个构造方法，直到无参构造方法（如果没有无参构造方法则抛出异常）
+     */
+
+    public ConsServiceImpl() {
+        log.info("实例化 => ConsServiceImpl()");
+    }
+
+    public ConsServiceImpl(BookService bookService) {
+        this.bookService = bookService;
+        log.info("实例化 => \n\tConsServiceImpl(\n\t\t{}\n\t)", bookService);
+    }
+
+    public ConsServiceImpl(BookService bookService, CourseService courseService) {
+        this.bookService = bookService;
+        this.courseService = courseService;
+        log.info("实例化 => \n\tConsServiceImpl(\n\t\t{},\n\t\t{}\n\t)", bookService, courseService);
+    }
+
+    public ConsServiceImpl(BookService bookService, CourseService courseService, SchoolService schoolService) {
+        this.bookService = bookService;
+        this.courseService = courseService;
+        this.schoolService = schoolService;
+        log.info("实例化 => \n\tConsServiceImpl(\n\t\t{},\n\t\t{},\n\t\t{}\n\t)", bookService, courseService, schoolService);
+    }
+
+    public ConsServiceImpl(BookService book, CourseService course, SchoolService school, TeacherService teacher) {
+        this.bookService = book;
+        this.courseService = course;
+        this.schoolService = school;
+        this.teacherService = teacher;
+        log.info("实例化 => \n\tConsServiceImpl(\n\t\t{},\n\t\t{},\n\t\t{},\n\t\t{}\n\t)", book, course, school, teacher);
+    }
+}
+```
+
+```java
+/**
+ * 自动依赖注入的方式：<bean autowire="constructor"/> + 构造方法
+ *
+ * @author xzy
+ * @date 2021/12/7 11:38
+ */
+public class Main {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("d/beanWired.xml");
+        System.out.println(applicationContext.getBean(ConsServiceImpl.class));
+    }
+}
+```
+
+xml文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="bookService1" class="com.xzy.service.impl.BookServiceImpl"/>
+    <!--    <bean id="bookService2" class="com.xzy.service.impl.BookServiceImpl"/>-->
+    <bean id="courseService1" class="com.xzy.service.impl.CourseServiceImpl"/>
+    <!--    <bean id="courseService2" class="com.xzy.service.impl.CourseServiceImpl"/>-->
+    <bean id="schoolService1" class="com.xzy.service.impl.SchoolServiceImpl"/>
+    <!--    <bean id="schoolService2" class="com.xzy.service.impl.SchoolServiceImpl"/>-->
+    <bean id="teacherService1" class="com.xzy.service.impl.TeacherServiceImpl"/>
+    <!--    <bean id="teacherService2" class="com.xzy.service.impl.TeacherServiceImpl"/>-->
+
+    <bean id="byTypeService" class="com.xzy.d.ConsServiceImpl" autowire="constructor"/>
+
+</beans>
+```
+
+工作流程图：
+
+![image-20211209173434550](markdown/Spring_周瑜.assets/image-20211209173434550.png)
+
+测试：
+
+以上文配置运行代码
+
+![image-20211209173536961](markdown/Spring_周瑜.assets/image-20211209173536961.png)
+
 ### B. @Autowired
+
+![image-20211209173608772](markdown/Spring_周瑜.assets/image-20211209173608772.png)
+
+配置类：
+
+```java
+public class BeanConfig {
+
+    @Bean
+    public BookService bookService1() { return new BookServiceImpl("bookService1");    }
+
+    @Bean
+    public BookService bookService2() { return new BookServiceImpl("bookService2");    }
+
+    @Bean
+    public CourseService courseService1() { return new CourseServiceImpl("courseService1");    }
+
+    @Bean
+    public CourseService courseService2() { return new CourseServiceImpl("courseService2");    }
+
+    @Bean
+    public SchoolService schoolService1() { return new SchoolServiceImpl("schoolService1");    }
+
+    @Bean
+    public SchoolService schoolService2() { return new SchoolServiceImpl("schoolService2");    }
+
+    @Bean
+    public StudentService studentService1() { return new StudentServiceImpl("studentService1");    }
+
+    @Bean
+    public StudentService studentService2() { return new StudentServiceImpl("studentService2");   }
+
+    @Bean
+    public TeacherService teacherService1() { return new TeacherServiceImpl("teacherService1");    }
+
+    @Bean
+    public TeacherService teacherService2() { return new TeacherServiceImpl("teacherService2");    }
+}
+```
+
+java类：
+
+```java
+package com.xzy.e;
+
+import com.xzy.service.*;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+
+/**
+ * 自动依赖注入的方式：@Autowired + 属性|方法
+ *
+ * @author xzy
+ * @date 2021/12/7  21:54
+ */
+@Slf4j
+@ToString
+public class AutowiredServiceImpl {
+
+    /*
+     * 自动依赖注入的方式：@Autowired + 属性|方法
+     *
+     * @Autowired + 属性：Spring先根据[属性类型]到容器中寻找Bean（byType），如果找到多个Bean则根据[属性名称]进一步筛选（byName）
+     * @Autowired + 方法：Spring先根据[参数类型]到容器中寻找Bean（byType），如果找到多个Bean则根据[参数名称]进一步筛选（byName）
+     *
+     * 找不到Bean的情况：
+     *     1.容器中没有指定类型的Bean
+     *     2.容器中有多个指定类型的Bean，但是没有一个Bean的名称与属性名（或参数名）匹配
+     */
+
+    @Autowired
+    private BookService bookService1;
+    private StudentService studentService;
+    private TeacherService teacherService;
+    private CourseService courseService;
+    private SchoolService schoolService;
+
+    @Autowired
+    public AutowiredServiceImpl(StudentService studentService1, TeacherService teacherService2) {
+        this.studentService = studentService1;
+        this.teacherService = teacherService2;
+        log.info("实例化 -> AutowiredServiceImpl({},{})", studentService1, teacherService2);
+    }
+
+    @Autowired
+    public void setCourseService(CourseService courseService2) {
+        this.courseService = courseService2;
+        log.info("依赖注入 -> setCourseService({})", courseService2);
+    }
+
+    @Autowired
+    public void xxx(SchoolService schoolService1) {
+        this.schoolService = schoolService1;
+        log.info("依赖注入 -> xxx({})", schoolService1);
+    }
+
+}
+```
+
+工作流程：
+
+1.   @Autowired + 构造方法：从参数列表长的构造方法开始，遍历参数列表的每个参数。先根据参数类型到容器寻找Bean，如果找到多个Bean则根据参数名称进一步筛选，如果能够筛选出唯一的Bean表示依赖寻找成功。如果所有参数都能成功找到依赖，则调用当前构造方法进行依赖注入，否则遍历下一个方法。（如果当前类不存在无参构造方法，但是所有有参构造方法的依赖无法完全满足，那么抛出异常）
+2.   @Autowired + 属性：遍历所有@Autowired标注的属性。先根据属性类型到容器寻找Bean，如果找到多个Bean则根据属性名称进一步筛选，如果能够筛选出唯一的Bean则为属性赋值。
+3.   @Autowired + 普通方法：遍历所有@Autowired标注的方法。先根据参数类型……进一步根据参数名称……
+
+测试：
+
+![image-20211209175255964](markdown/Spring_周瑜.assets/image-20211209175255964.png)
+
