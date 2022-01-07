@@ -1,5 +1,9 @@
 # Dubbo-Admin 安装
 
+项目代码：https://github.com/apache/dubbo-admin/tree/master
+
+官方手册：https://github.com/apache/dubbo-admin/blob/master/README_ZH.md
+
 ## 一、Linux
 
 ## 二、Win10
