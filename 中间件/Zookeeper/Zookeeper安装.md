@@ -12,7 +12,7 @@
      docker pull zookeeper
      ```
 
-     ![image-20220106222215656](markdown/Zookeeper.assets/image-20220106222215656.png)
+     ![image-20220106222215656](markdown/Zookeeper安装.assets/image-20220106222215656.png)
 
      >   拉取指定版本的 Zookeeper 镜像
      >
@@ -28,7 +28,7 @@
      docker images
      ```
 
-     ![image-20220106222235276](markdown/Zookeeper.assets/image-20220106222235276.png)
+     ![image-20220106222235276](markdown/Zookeeper安装.assets/image-20220106222235276.png)
 
      
 
@@ -56,13 +56,13 @@
      docker container ls
      ```
 
-     ![image-20220106223654963](markdown/Zookeeper.assets/image-20220106223654963.png)
+     ![image-20220106223654963](markdown/Zookeeper安装.assets/image-20220106223654963.png)
 
      
 
 5.   进入 Zookeeper 容器；进入 Zookeeper 安装目录
 
-     ![image-20220106224214032](markdown/Zookeeper.assets/image-20220106224214032.png)
+     ![image-20220106224214032](markdown/Zookeeper安装.assets/image-20220106224214032.png)
 
 6.   运行客户端
 
@@ -70,4 +70,4 @@
      zkCli.sh
      ```
 
-     ![image-20220106224419925](markdown/Zookeeper.assets/image-20220106224419925.png)
+     ![image-20220106224419925](markdown/Zookeeper安装.assets/image-20220106224419925.png)
