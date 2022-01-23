@@ -4,7 +4,7 @@
 
 1.   查看 Nginx 全局配置文件 /etc/nginx/nginx.conf
 
-     ```
+     ```nginx
      user  nginx;
      worker_processes  auto;
      
@@ -42,7 +42,7 @@
 
 2.   创建自定义配置
 
-     ```
+     ```nginx
      server {
          listen       80;
          server_name  127.0.0.1;
@@ -76,3 +76,4 @@
      ![image-20220123160022718](markdown/Nginx 实战 - 反向代理.assets/image-20220123160022718.png)
 
      ![image-20220123160031275](markdown/Nginx 实战 - 反向代理.assets/image-20220123160031275.png)
+
