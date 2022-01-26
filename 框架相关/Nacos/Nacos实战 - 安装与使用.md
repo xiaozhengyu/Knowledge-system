@@ -14,7 +14,7 @@
      docker search nacos
      ```
 
-     ![image-20220120101759931](markdown/Nacos安装与使用.assets/image-20220120101759931.png)
+     ![image-20220120101759931](markdown/Nacos实战 - 安装与使用.assets/image-20220120101759931.png)
 
 2.   拉取镜像
 
@@ -22,9 +22,9 @@
      docker pull nacos/nacos-server
      ```
 
-     ![image-20220120101854740](markdown/Nacos安装与使用.assets/image-20220120101854740.png)
+     ![image-20220120101854740](markdown/Nacos实战 - 安装与使用.assets/image-20220120101854740.png)
 
-     ![image-20220120102350353](markdown/Nacos安装与使用.assets/image-20220120102350353.png)
+     ![image-20220120102350353](markdown/Nacos实战 - 安装与使用.assets/image-20220120102350353.png)
 
 3.   检查拉取结果
 
@@ -32,7 +32,7 @@
      docker images
      ```
 
-     ![image-20220120102434056](markdown/Nacos安装与使用.assets/image-20220120102434056.png)
+     ![image-20220120102434056](markdown/Nacos实战 - 安装与使用.assets/image-20220120102434056.png)
 
 4.   创建并运行实例（单节点模式）
 
@@ -40,13 +40,13 @@
      docker run -itd -p 8848:8848 --env MODE=standalone --name nacos nacos/nacos-server
      ```
 
-     ![image-20220120102508135](markdown/Nacos安装与使用.assets/image-20220120102508135.png)
+     ![image-20220120102508135](markdown/Nacos实战 - 安装与使用.assets/image-20220120102508135.png)
 
 5.   检查启动结果
 
      <(￣︶￣)↗[GO!] [Nacos控制台](localhost:8848/nacos)    账号密码：nacos/nacos
 
-     ![image-20220120102702548](markdown/Nacos安装与使用.assets/image-20220120102702548.png)
+     ![image-20220120102702548](markdown/Nacos实战 - 安装与使用.assets/image-20220120102702548.png)
 
-     ![image-20220120102727592](markdown/Nacos安装与使用.assets/image-20220120102727592.png)
+     ![image-20220120102727592](markdown/Nacos实战 - 安装与使用.assets/image-20220120102727592.png)
 
