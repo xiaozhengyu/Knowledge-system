@@ -4,6 +4,13 @@
 
 
 
+修改 Windows 的 [hosts](C:\Windows\System32\drivers\etc) 文件，添加以下映射关系：
+
+```
+#Eureka
+127.0.0.1 eureka-register1
+```
+
 ## 1、构建注册中心
 
 ### 1.1 依赖文件
@@ -83,6 +90,8 @@ eureka:
     service-url: # 服务注册中心的地址
       defaultZone: http://eureka-register1:7001/eureka/
 ```
+
+注意：需要修改 hosts 文件，添加对 eureka-reaigste1 的 ip 映射（或者在配置文件这里直接配置IP）
 
 ### 1.3 主启动类
 
@@ -222,6 +231,8 @@ eureka:
     service-url:
       defaultZone: http://eureka-register1:7001/eureka/
 ```
+
+注意：需要修改 hosts 文件，添加对 eureka-reaigste1 的 ip 映射（或者在配置文件这里直接配置IP）
 
 ### 2.3 主启动类
 
@@ -365,6 +376,8 @@ eureka:
     service-url:
       defaultZone: http://eureka-register1:7001/eureka/
 ```
+
+注意：需要修改 hosts 文件，添加对 eureka-reaigste1 的 ip 映射（或者在配置文件这里直接配置IP）
 
 ### 3.3 主启动类
 
