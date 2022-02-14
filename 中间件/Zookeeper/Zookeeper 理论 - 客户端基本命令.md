@@ -80,8 +80,6 @@ create [-s] [-e] path data [acl]
 -   -s：顺序节点
 -   -e：临时节点
 
-
-
 ## set
 
 set 命令用于修改节点存储的数据。

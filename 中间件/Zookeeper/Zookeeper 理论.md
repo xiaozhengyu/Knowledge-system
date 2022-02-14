@@ -59,5 +59,3 @@ Zookeeper  =   **分布式应用程序协调服务软件**，分布式应用程�
 
 <(￣︶￣)↗[Zookeeper 理论 - Leader 选举.md](./Zookeeper 理论 - Leader 选举.md)
 
-## 分布式锁
-
