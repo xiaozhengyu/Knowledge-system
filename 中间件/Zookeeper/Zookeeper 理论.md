@@ -49,7 +49,7 @@ Zookeeper  =   **分布式应用程序协调服务软件**，分布式应用程�
 
 ## Watcher 事件机制
 
-
+<(￣︶￣)↗[Zookeeper 理论 - Watcher 事件机制.md](./Zookeeper 理论 - Watcher 事件机制.md)
 
 ## ZAB & 分布式数据一致性
 

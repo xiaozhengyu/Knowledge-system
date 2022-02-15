@@ -289,7 +289,7 @@ Nacos 高可用环境 = Nacos 集群 + Nacos 持久化
 ## 5、验证上述容器能否相互 ping 通
 
 >   注意：ping: command not found
->   解决：apt-get update + apt-get iputils-ping
+>   解决：apt-get update + apt-get install iputils-ping
 
 ![image-20220127223133473](markdown/Nacos实战 - 高可用环境搭建.assets/image-20220127223133473.png)
 
