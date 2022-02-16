@@ -1,4 +1,4 @@
-# Consul 安装使用
+# Consul 安装
 
 ## 1、Linux环境
 
