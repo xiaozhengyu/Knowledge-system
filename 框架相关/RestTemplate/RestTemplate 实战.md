@@ -1,11 +1,14 @@
 # RestTemplate 实战
 
-1.   RestTemplate 基本使用
+## 1、RestTemplate 基础 API 使用
 
-     <(￣︶￣)↗[GO!](./RestTemplate 实战 - 基本使用.md)
+[RestTemplate 实战 - RestTemplate 基础 API 使用.md](./RestTemplate 实战 - RestTemplate 基础 API 使用.md)
 
-2.   RestTemplate 配置 & 自定义
+## 2、RestTemplate 配置、拓展
 
-     <(￣︶￣)↗[GO!](./RestTempalte 实战 - 配置 & 自定义.md)
+[RestTemplate 实战 - RestTemplate 配置、拓展.md](./RestTemplate 实战 - RestTemplate 配置、拓展.md)
 
-参考：https://www.jianshu.com/p/0fd5f3f64137
+## 3、RestTemplate 自定义
+
+[RestTemplate 实战 - RestTemplate 自定义.md](./RestTemplate 实战 - RestTemplate 自定义.md)
+
