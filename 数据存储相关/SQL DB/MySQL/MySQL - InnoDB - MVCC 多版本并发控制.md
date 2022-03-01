@@ -98,7 +98,7 @@
 
 -   读未提交（Read Uncommitted）
 -   读已提交（Read Committed）
--   可重复度（Repeatable Read）
+-   可重复读（Repeatable Read）
 -   可串行化（Serializable）
 
 |     隔离等级     | 脏读 | 不可重复度 | 幻读 |

@@ -16,13 +16,13 @@
 
 ### 事务ACID
 
-原子性，指的是整个事务要么全部成功，要么全部失败，对InnoDB来说，只要client收到server发送过来的commit成功报文，那么这个事务一定是成功的。如果收到的是rollback的成功报文，那么整个事务的所有操作一定都要被回滚掉，就好像什么都没执行过一样。另外，如果连接中途断开或者server  crash事务也要保证会滚掉。<mark style="background:#DAE3E9">InnoDB通过undolog保证rollback的时候能找到之前的数据。</mark>
+-   原子性，指的是整个事务要么全部成功，要么全部失败，对InnoDB来说，只要client收到server发送过来的commit成功报文，那么这个事务一定是成功的。如果收到的是rollback的成功报文，那么整个事务的所有操作一定都要被回滚掉，就好像什么都没执行过一样。另外，如果连接中途断开或者server  crash事务也要保证会滚掉。<mark style="background:#DAE3E9">InnoDB通过undolog保证rollback的时候能找到之前的数据。</mark>
 
-一致性，指的是在任何时刻，包括数据库正常提供服务的时候，数据库从异常中恢复过来的时候，数据都是一致的，保证不会读到中间状态的数据。在InnoDB中，主要通过crash recovery和double write  buffer的机制保证数据的一致性。
+-   一致性，指的是在任何时刻，包括数据库正常提供服务的时候，数据库从异常中恢复过来的时候，数据都是一致的，保证不会读到中间状态的数据。在InnoDB中，主要通过crash recovery和double write  buffer的机制保证数据的一致性。
 
-隔离性，指的是多个事务可以同时对数据进行修改，但是相互不影响。InnoDB中，依据不同的业务场景，有四种隔离级别可以选择。<mark style="background:#DAE3E9">默认是RR隔离级别</mark>，因为相比于RC，InnoDB的RR性能更加好。
+-   隔离性，指的是多个事务可以同时对数据进行修改，但是相互不影响。InnoDB中，依据不同的业务场景，有四种隔离级别可以选择。<mark style="background:#DAE3E9">默认是RR隔离级别</mark>，因为相比于RC，InnoDB的RR性能更加好。
 
-持久性，指的是事务commit的数据在任何情况下都不能丢。在内部实现中，<mark style="background:#DAE3E9">InnoDB通过redolog保证已经commit的数据一定不会丢失。</mark>
+-   持久性，指的是事务commit的数据在任何情况下都不能丢。在内部实现中，<mark style="background:#DAE3E9">InnoDB通过redolog保证已经commit的数据一定不会丢失。</mark>
 
 ### 多版本并发控制
 
