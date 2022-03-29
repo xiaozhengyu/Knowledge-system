@@ -1,10 +1,52 @@
 # RestTemplate 配置、拓展
 
 ## 1、处理请求头
+### HttpEntity ⭐
 
+使用 RestTemplate 时可以通过 HttpEntity 设置请求头和请求体。HttpEntity 有4个构造方法：无参构造、只设置请求 body、只设置 headers、<font color = red>既设置headers又设置body</font>
 
+```java
+/**
+ * Create a new, empty {@code HttpEntity}.
+ */
+protected HttpEntity() {
+  this(null, null);
+}
 
-（1）如果是发送 post、put 请求，需要设置请求头，可以在调用方法时，利用第二个参数传入 HttpEntity 对象，HttpEntity 可以用于设置请求头信息，例如：
+/**
+ * Create a new {@code HttpEntity} with the given body and no headers.
+ * @param body the entity body
+ */
+public HttpEntity(T body) { // 只设置请求体
+  this(body, null);
+}
+
+/**
+ * Create a new {@code HttpEntity} with the given headers and no body.
+ * @param headers the entity headers
+ */
+public HttpEntity(MultiValueMap<String, String> headers) { // 只设置请求头
+  this(null, headers);
+}
+
+/**
+ * Create a new {@code HttpEntity} with the given body and headers.
+ * @param body the entity body
+ * @param headers the entity headers
+ */
+public HttpEntity(T body, MultiValueMap<String, String> headers) { // 同时设置请求体与请求头
+  this.body = body;
+  HttpHeaders tempHeaders = new HttpHeaders();
+  if (headers != null) {
+      tempHeaders.putAll(headers);
+  }
+  this.headers = HttpHeaders.readOnlyHttpHeaders(tempHeaders);
+}
+```
+
+### 1、为 post、put 请求设置请求头
+
+如果是发送 post、put 请求，需要设置请求头，可以在调用方法时，利用第二个参数传入 HttpEntity 对象，HttpEntity 可以用于设置请求头信息，例如：
 
 ```java
 HttpHeaders requestHeaders = new HttpHeaders();
@@ -14,7 +56,7 @@ HttpEntity requestEntity = new HttpEntity(requestHeaders);
 Book book = restTemplate.postForObject("http://127.0.0.1:8080/getbook", requestEntity, Book.class);
 ```
 
-以`postForObject()`方法为例，其第二个参数接收 Object 类型的数据，如传入的是 HttpEntity，则使用它作为整个请求实体，如果传入的是其它 Object 类型，则将 Object 参数作为 request body，新建一个 HttpEntity 作为请求实体
+以`postForObject()`方法为例，其第二个参数接收 Object 类型的数据，<u>如传入的是 HttpEntity，则使用它作为整个请求实体，如果传入的是其它 Object 类型，则将 Object 参数作为 request body，新建一个 HttpEntity 作为请求实体</u>
 
 ```java
 private HttpEntityRequestCallback(Object requestBody, Type responseType) {
@@ -33,9 +75,30 @@ private HttpEntityRequestCallback(Object requestBody, Type responseType) {
 }
 ```
 
+>   同时设置请求头和请求体：
+>
+>   ```java
+>   @PostMapping("post_with_body_and_header")
+>   public void postWithBodyAndHeader(@RequestBody(required = false) UserEntity requestBody) {
+>       // 1.请求头
+>       HttpHeaders httpHeaders = new HttpHeaders();
+>       httpHeaders.add("headerName1", "headerValue1");
+>       httpHeaders.add("headerName2", "headerValue2");
+>       httpHeaders.add("headerName3", "headerValue3");
+>       httpHeaders.add("Content-Type", "application/json"); // 传递请求体时必须设置
+>   
+>       // 2.请求头 & 请求体
+>       HttpEntity<String> fromEntity = new HttpEntity<>(JSONUtil.toJsonStr(requestBody), httpHeaders);
+>   
+>   
+>       MessageBox responseBody = restTemplate.postForObject(INVOKE_URL + "/test/receive", fromEntity, MessageBox.class);
+>       log.info("响应体：{}", JSONUtil.toJsonPrettyStr(responseBody));
+>   }
+>   ```
 
+### 2、为其他请求设置请求头
 
-（2）如果是其它HTTP方法调用要设置请求头，可以使用exchange()方法，可以参考 [官方示例](https://docs.spring.io/spring/docs/4.3.9.RELEASE/spring-framework-reference/html/remoting.html#rest-template-headers)
+如果是其它HTTP方法调用要设置请求头，可以使用exchange()方法，可以参考 [官方示例](https://docs.spring.io/spring/docs/4.3.9.RELEASE/spring-framework-reference/html/remoting.html#rest-template-headers)
 
 ```java
 HttpHeaders requestHeaders = new HttpHeaders();
@@ -44,7 +107,11 @@ HttpEntity requestEntity = new HttpEntity(requestHeaders);
 
 HttpEntity<String> response = template.exchange(
         "http://example.com/hotels/{hotel}",
-        HttpMethod.GET, requestEntity, String.class, "42");
+        HttpMethod.GET, 
+        requestEntity, 
+        String.class, 
+        "42"
+);
 
 String responseHeader = response.getHeaders().getFirst("MyResponseHeader");
 String body = response.getBody();
@@ -52,46 +119,6 @@ String body = response.getBody();
 
 总之，设置 request header 信息，需要找到对应的 restTemplate 方法中可以使用 HttpEntity 作为参数的，提前设置好请求头信息
 
-注意：HttpEntity 有4个构造方法：无参构造、只设置请求 body、只设置 headers、既设置headers又设置body
-
-```java
-/**
- * Create a new, empty {@code HttpEntity}.
- */
-protected HttpEntity() {
-  this(null, null);
-}
-
-/**
- * Create a new {@code HttpEntity} with the given body and no headers.
- * @param body the entity body
- */
-public HttpEntity(T body) {
-  this(body, null);
-}
-
-/**
- * Create a new {@code HttpEntity} with the given headers and no body.
- * @param headers the entity headers
- */
-public HttpEntity(MultiValueMap<String, String> headers) {
-  this(null, headers);
-}
-
-/**
- * Create a new {@code HttpEntity} with the given body and headers.
- * @param body the entity body
- * @param headers the entity headers
- */
-public HttpEntity(T body, MultiValueMap<String, String> headers) {
-  this.body = body;
-  HttpHeaders tempHeaders = new HttpHeaders();
-  if (headers != null) {
-      tempHeaders.putAll(headers);
-  }
-  this.headers = HttpHeaders.readOnlyHttpHeaders(tempHeaders);
-}
-```
 
 ## 2、处理响应头
 
