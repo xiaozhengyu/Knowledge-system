@@ -32,3 +32,17 @@ public void dealWithGenericData(...) {
     log.info(String.valueOf(body));
 }
 ```
+
+
+
+**相关源码：**
+
+![image-20220330104015253](markdown/RestTemplate 实战 - 接收泛型数据.assets/image-20220330104015253.png)
+
+>   The given ParameterizedTypeReference <font color = red>is used to pass generic type information</font>：
+>
+>   ```java
+>   ParameterizedTypeReference<List<MyBean>> myBean = new ParameterizedTypeReference<List<MyBean>>() {};
+>   ResponseEntity<List<MyBean>> response = template.exchange("http://example.com",HttpMethod.GET, null, myBean);
+>   ```
+
