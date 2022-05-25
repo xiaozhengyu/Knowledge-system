@@ -82,7 +82,7 @@
 </project>
 ```
 
-从依赖文件看，似乎没有哪个依赖是与 Ribbon 相关的，然而，Ribbon 已经被集成在了 Eureka 的依赖中：
+从依赖文件看，似乎没有配置与 Ribbon 相关的依赖，但是实际上 Ribbon 已经被集成在了 Eureka 中：
 
 ![image-20220217222401998](markdown/Ribbon 实战 - RestTemplate + Ribbon 实现负载均衡.assets/image-20220217222401998.png)
 
