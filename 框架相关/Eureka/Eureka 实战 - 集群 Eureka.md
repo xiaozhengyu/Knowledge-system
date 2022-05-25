@@ -83,7 +83,7 @@
 
 3 个实例的配置文件：
 
-```xml
+```yaml
 server:
   port: 7001
 
@@ -97,7 +97,7 @@ eureka:
       defaultZone: http://eureka-register2:7002/eureka/,http://eureka-register3:7003/eureka/
 ```
 
-```xml
+```yaml
 server:
   port: 7002
 
@@ -111,7 +111,7 @@ eureka:
       defaultZone: http://eureka-register1:7001/eureka/,http://eureka-register3:7003/eureka/
 ```
 
-```xml
+```yaml
 server:
   port: 7003
 
@@ -275,7 +275,7 @@ eureka:
       defaultZone: http://eureka-register1:7001/eureka/,http://eureka-register2:7002/eureka/,http://eureka-register3:7003/eureka/
 ```
 
-注意：需要在 <font color = red>eureka.client.service-url.defaultZone</font> 配置所有注册中心实例的地址！实例启动后会向到配置的注册中心注册
+注意：需要在 <font color = red>eureka.client.service-url.defaultZone</font> 配置所有注册中心实例的地址！实例启动后会向到配置的所有注册中心实例注册，并向所有注册中心实例发送心跳
 
 ![image-20220213022827873](markdown/Eureka 实战 - 集群 Eureka.assets/image-20220213022827873.png)
 

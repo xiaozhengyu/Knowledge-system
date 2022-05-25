@@ -1,10 +1,8 @@
 # 服务发现
 
-服务发现，即获取注册中心中记录的服务的信息：
+服务发现，即获取注册中心中记录的服务的信息：有哪些服务？服务有哪些实例？实例的详细信息？
 
--   有哪些服务？
--   服务有哪些实例？
--   实例的详细信息？
+
 
 [toc]
 
@@ -26,7 +24,7 @@ eureka:
 
 ## 2、主启动类
 
-```
+```java
 @SpringBootApplication
 @EnableEurekaClient
 @EnableDiscoveryClient
