@@ -8,7 +8,7 @@ ZooKeeper  是 Apache 软件基金会的一个软件项目，官网：https://zo
 
 ![image-20220214110207031](markdown/Zookeeper 理论.assets/image-20220214110207031.png)
 
-Zookeeper  =   **分布式应用程序协调服务软件**，分布式应用程序可以基于它实现下列功能：
+Zookeeper  =   **分布式应用程序<u>协调服务软件</u>**，分布式应用程序可以基于它实现下列功能：
 
 -   数据发布/订阅
 -   负载均衡
@@ -27,13 +27,13 @@ Zookeeper  =   **分布式应用程序协调服务软件**，分布式应用程�
 
 <(￣︶￣)↗[Zookeeper 理论 - 数据模型.md](./Zookeeper 理论 - 数据模型.md)
 
-## Zookeeper 与 CAP 理论
-
-<(￣︶￣)↗[Zookeeper 理论 - Zookeeper 与 CAP 理论.md!](Zookeeper 理论 - Zookeeper 与 CAP 理论.md)
-
 ## 会话
 
 <(￣︶￣)↗[Zookeeper 理论 - 会话.md](Zookeeper 理论 - 会话.md)
+
+## Zookeeper 与 CAP 理论
+
+<(￣︶￣)↗[Zookeeper 理论 - Zookeeper 与 CAP 理论.md!](Zookeeper 理论 - Zookeeper 与 CAP 理论.md)
 
 ## 客户端基本命令
 

@@ -78,7 +78,7 @@ create [-s] [-e] path data [acl]
 -   data：节点数据
 -   acl：访问权限
 -   -s：顺序节点
--   -e：临时节点
+-   -e：**临时节点**
 
 ## set
 
