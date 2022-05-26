@@ -6,8 +6,8 @@
 @SpringBootApplication
 @EnableEurekaClient
 @EnableFeignClients
-@EnableHystrix
-@EnableCircuitBreaker
+@EnableHystrix // Mark
+@EnableCircuitBreaker // Mark
 public class PaymentApplication {
     public static void main(String[] args) {
         SpringApplication.run(PaymentApplication.class, args);
@@ -19,9 +19,9 @@ public class PaymentApplication {
 
 影响 Hystrix 断路器的 3 个重要参数：
 
--   时间窗口：断路器工作时需要统计接口工作情况，而统计的时间范围就是时间窗口，默认为 10 秒
--   请求总数阈值：在时间窗口内，请求总数必须超过阈值断路器才有资格熔断，默认为 20，这意味着如果 10 秒内请求的次数不足 20 个，即使所有请求都超时或失败，熔断依然不会触发。
--   错误百分比阈值：在时间窗口内，如果请求总数阈值已经达到，如果错误请求的占比超过该阈值，熔断就会触发
+-   `时间窗口`：断路器工作时需要统计接口工作情况，而统计的时间范围就是时间窗口，默认为 10 秒
+-   `请求总数阈值`：在时间窗口内，请求总数必须超过阈值断路器才有资格熔断，默认为 20，这意味着如果 10 秒内请求的次数不足 20 个，即使所有请求都超时或失败，熔断依然不会触发。
+-   `错误百分比阈值`：在时间窗口内，如果请求总数阈值已经达到，如果错误请求的占比超过该阈值，熔断就会触发
 
 Hystrix 断路器工作的大概流程：
 

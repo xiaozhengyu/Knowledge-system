@@ -201,7 +201,7 @@ eureka:
 ```java
 @SpringBootApplication
 @EnableEurekaClient
-@EnableHystrix
+@EnableHystrix // Mark
 public class UserApplication {
     public static void main(String[] args) {
         SpringApplication.run(UserApplication.class, args);
@@ -419,7 +419,7 @@ logging:
 @EnableEurekaClient
 @EnableDiscoveryClient
 @EnableFeignClients
-@EnableHystrix
+@EnableHystrix // Mark
 public class PaymentApplication {
     public static void main(String[] args) {
         SpringApplication.run(PaymentApplication.class, args);
@@ -466,4 +466,4 @@ public class UserServiceFeignFallback implements UserServiceFeign {
 }
 ```
 
-以往使用 Feign 的时候是不需要实现 Feign 接口的，但是当 Feign 与 Hystrix 配合一起使用时，可以为 Feign 配置实现类，实现类中的每一个方法都相当于远程接口的本地降级方法。当然，这种方式是非必须的，如果只需要为个别方法配置服务降级，可以在 Controller 那里使用 @HystrixCommand 进行配置。
+以往使用 Feign 的时候是不需要实现 Feign 接口的，但是当 Feign 与 Hystrix 配合一起使用时，可以为 Feign 配置实现类，<u>实现类中的每一个方法都相当于远程接口的本地降级方法</u>。当然，这种方式是非必须的，如果只需要为个别方法配置服务降级，可以在 Controller 那里使用 @HystrixCommand 进行配置。
