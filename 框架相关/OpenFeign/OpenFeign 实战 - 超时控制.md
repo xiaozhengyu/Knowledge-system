@@ -4,7 +4,7 @@
 
 ## 配置
 
-由于 OpenFeign 集成了 Ribbon，其服务调用以及负载均衡在底层都是依靠 Ribbon 实现的，因此 OpenFeign 的超时控制也是通过 Ribbon 来实现的：（OpenFeign 默认的超时时间是 1 s）
+由于 OpenFeign 集成了 `Ribbon`，其服务调用以及负载均衡在底层都是依靠 Ribbon 实现的，因此 OpenFeign 的超时控制也是通过 Ribbon 来实现的：（OpenFeign 默认的超时时间是 1 s）
 
 ```yaml
 ribbon:

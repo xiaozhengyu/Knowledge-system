@@ -17,6 +17,8 @@ p3<-->r
 r<--Feign-->c
 ```
 
+![image-20220526150835989](markdown/OpenFeign 实战 - 基本使用.assets/image-20220526150835989.png)
+
 
 
 ## 服务提供方
@@ -164,7 +166,7 @@ eureka:
 @SpringBootApplication
 @EnableEurekaClient
 @EnableDiscoveryClient
-@EnableFeignClients
+@EnableFeignClients // Mark
 public class PaymentApplication {
     public static void main(String[] args) {
         SpringApplication.run(PaymentApplication.class, args);
@@ -172,13 +174,13 @@ public class PaymentApplication {
 }
 ```
 
-配置 @EnableFeignClients 注解后，Spring Cloud 应用在启动后会扫描标有 @FeignClient 注解的接口，生成代理，并注册到 Spring 容器。
+配置 `@EnableFeignClients` 注解后，Spring Cloud 应用在启动后会扫描标有 @FeignClient 注解的接口，生成代理，并注册到 Spring 容器。
 
 ### 服务接口绑定
 
 ```java
 @Component
-@FeignClient("cloud-user-service")
+@FeignClient("cloud-user-service") // 服务名称
 public interface UserControllerFeign {
 
     /**
@@ -187,14 +189,14 @@ public interface UserControllerFeign {
      * @param id 主键
      * @return 用户信息
      */
-    @GetMapping("/user/user/{id}") // 注意这个地址！
+    @GetMapping("/user/user/{id}") // 接口完整url
     MessageBox<UserEntity> findByPrimaryKey(@PathVariable("id") Long id);
 }
 ```
 
 进行服务接口绑定时需要注意2点：
 
-1.   @FeignClient 注解的 value 属性用于配置服务提供者的服务名，即服务提供者配置项 `spring.application.name` 的值
+1.   `@FeignClient` 注解的 value 属性用于配置服务提供者的服务名，即服务提供者配置项 `spring.application.name` 的值
 2.   接口中定义的每个方法与服务提供者的 Controller 中定义的服务方法对应
 
 ### 服务接口调用

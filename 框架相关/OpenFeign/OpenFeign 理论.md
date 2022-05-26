@@ -18,11 +18,11 @@ OpenFeign 各版本的官方教程：
 
 Feign 是 Netflix 公司发布的一种实现服务调用的开源组件。Spring Cloud 将其与 Netflix 发布的其他开源组件（例如，Eureka、Ribbon、Hystrix）一起整合进了 Spring Cloud Netflix 模块中，整合后的全称为 Spring Cloud Netflix Feign
 
-<u>Feign 集成了 Ribbon，利用 Ribbon 维护了一份可用服务清单，并通过 Ribbon 实现客户端负载均衡。</u>
+Feign 集成了 **Ribbon**，利用 Ribbon 维护了一份可用服务清单，并通过 Ribbon 实现客户端负载均衡。
 
-Feign 是一种<u>声明式的服务调用组件</u>，它在 RestTemplate 的基础上做了进一步的封装。<u>通过 Feign，我们只需要先声明一个接口，然后通过注解进行简单的配置，即可实现对 HTTP 接口的绑定。通过 Feign，客户端可以像调用本地方法一样调用远程服务，并且完全感觉不到这是在进行远程调用。</u>（类比使用 Mybatis 时，只需要在 Dao 接口上添加 @Mapper 注解，就可以通过 Dao 接口进行数据库操作）
+Feign 是一种**声明式**的服务调用组件，它在 **RestTemplate** 的基础上做了进一步的封装。通过 Feign，我们只需要先声明一个接口，然后通过注解进行简单的配置，即可实现对 HTTP 接口的绑定。通过 Feign，客户端可以像调用本地方法一样调用远程服务，并且完全感觉不到这是在进行远程调用。（类比使用 Mybatis 时，只需要在 Dao 接口上添加 @Mapper 注解，就可以通过 Dao 接口进行数据库操作）
 
-Feign 支持多种注解，例如 Feign 自带的注解以及 JAX-RS 注解等，<u>但遗憾的是 Feign 本身并不支持 Spring MVC 注解</u>，这无疑会给广大 Spring 用户带来不便。
+Feign 支持多种注解，例如 Feign 自带的注解以及 JAX-RS 注解等，但遗憾的是 Feign 本身并<u>不支持 Spring MVC 注解</u>，这无疑会给广大 Spring 用户带来不便。
 
 2019 年 Netflix 公司宣布 Feign 组件正式进入<font color = red>停更维护状态</font>，于是 Spring 官方便推出了一个名为 OpenFeign 的组件作为 Feign 的替代方案。
 
@@ -44,3 +44,9 @@ OpenFeign 是 Spring Cloud 对 Feign 的<u>二次封装</u>，它具有 Feign �
 
 >   Spring Cloud Finchley 及以上版本一般使用 OpenFeign 作为其服务调用组件。由于 OpenFeign 是在 2019 年 Feign 停更进入维护后推出的，因此大多数 2019 年及以后的新项目使用的都是 OpenFeign，而 2018 年以前的项目一般使用 Feign。
 
+
+
+总结：
+
+1.   OpenFeign 是 Spring 社区基于 Feign 搞出来的东西，目的是替代已经停止更新的 Feign
+2.   OpenFeign 是一种  声明式  的服务调用组件

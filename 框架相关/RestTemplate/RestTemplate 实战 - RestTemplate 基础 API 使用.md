@@ -17,17 +17,23 @@
 | any         | [`exchange(java.lang.String,  org.springframework.http.HttpMethod,  org.springframework.http.HttpEntity, java.lang.Class,  java.lang.Object...)`](https://docs.spring.io/spring-framework/docs/4.3.9.RELEASE/javadoc-api/org/springframework/web/client/RestTemplate.html#exchange-java.lang.String-org.springframework.http.HttpMethod-org.springframework.http.HttpEntity-java.lang.Class-java.lang.Object...-) |
 |             | [`execute(java.lang.String,  org.springframework.http.HttpMethod,  org.springframework.web.client.RequestCallback,  org.springframework.web.client.ResponseExtractor,  java.lang.Object...)`](https://docs.spring.io/spring-framework/docs/4.3.9.RELEASE/javadoc-api/org/springframework/web/client/RestTemplate.html#execute-java.lang.String-org.springframework.http.HttpMethod-org.springframework.web.client.RequestCallback-org.springframework.web.client.ResponseExtractor-java.lang.Object...-) |
 
--   RestTemplate 的方法命名遵循一定的规则：【what HTTP method is being invoked】 + 【what is returned】，例如：getForObject()、postForEntity()，get 表示 GET 请求，post 表示 POST 请求，Object 表示将 http 响应转换成指定的对象然后直接返回这个对象，Entity 表示需要将转换好的对象与其他响应信息一起封装成 HttpEntity 对象返回。
+Note：
 
--   所有传递给这些方法以及从这些方法返回的对象都由 HttpMessageConverter 实例进行装换：
-
-    ```mermaid
-    graph LR
-    Object-->HttpMessageConverter-->HTTP
-    HTTP-->HttpMessageConverter-->Object
-    ```
-
--   exchange 和 execute 方法比其他方法的适用范围更广
+>   1.   RestTemplate 的方法命名遵循一定的规则：【what HTTP method is being invoked】 + 【what is returned】，例如：getForObject()、postForEntity()，get 表示 GET 请求，post 表示 POST 请求，Object 表示将 http 响应转换成指定的对象然后直接返回这个对象，Entity 表示需要将转换好的对象与其他响应信息一起封装成 HttpEntity 对象返回。
+>
+>        
+>
+>   2.   所有传递给这些方法以及从这些方法返回的对象都由 HttpMessageConverter 实例进行装换：
+>
+>        ```mermaid
+>        graph LR
+>        Object-->HttpMessageConverter-->HTTP
+>        HTTP-->HttpMessageConverter-->Object
+>        ```
+>
+>        
+>
+>   3.   exchange 和 execute 方法比其他方法的适用范围更广~(万金油)~
 
 
 
@@ -35,7 +41,7 @@
 
 ### getForEntity() 方法
 
-发送GET请求，返回ResponseEntity
+发送 GET 请求，返回 ResponseEntity
 
 ```java
 /**
@@ -83,7 +89,7 @@ HttpHeaders headers = responseEntity.getHeaders();  //响应头信息
 
 ### getForObject() 方法
 
-发送GET请求，返回指定的Object类型
+发送 GET 请求，返回指定的 Object 类型
 
 ```java
 /**
@@ -130,7 +136,7 @@ Book book = restTemplate
 
 ### postForEntity() 方法
 
-发送POST请求，返回ResponseEntity
+发送 POST 请求，返回 ResponseEntity
 
 ```java
 /**
@@ -178,7 +184,7 @@ HttpHeaders headers = responseEntity.getHeaders();  //响应头信息
 
 ### postForObject() 方法
 
-发送POST请求，返回指定的Object类型
+发送 POST 请求，返回指定的 Object 类型
 
 ```java
 /**

@@ -1,6 +1,6 @@
 # RestTemplate 自定义
 
-RestTemplate 自定义主要有三种方法，具体取决于希望自定义应用的范围
+自定义 RestTemplate 主要有三种方法，具体取决于希望自定义所应用的范围：
 
 1.  **类范围**。为了尽量缩小自定义的范围，在类中注入自动配置的`RestTemplateBuilder`，然后根据需求调用它的配置方法，每次调用配置方法都会 new RestTemplateBuilder() 并返回，所以对 RestTemplateBuilder 的配置只会影响由它创建的 RestTemplate
 

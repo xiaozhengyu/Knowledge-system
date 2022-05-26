@@ -3,7 +3,12 @@
 ## 1、处理请求头
 ### HttpEntity ⭐
 
-使用 RestTemplate 时可以通过 HttpEntity 设置请求头和请求体。HttpEntity 有4个构造方法：无参构造、只设置请求 body、只设置 headers、<font color = red>既设置headers又设置body</font>
+使用 RestTemplate 时可以通过 HttpEntity 设置请求头和请求体。HttpEntity 有4个构造方法：
+
+-   无参构造方法
+-   只设置请求 body
+-   只设置 headers
+-   <font color = red>既设置 headers 又设置 body</font>
 
 ```java
 /**
@@ -44,7 +49,7 @@ public HttpEntity(T body, MultiValueMap<String, String> headers) { // 同时设�
 }
 ```
 
-### 1、为 post、put 请求设置请求头
+### 1.1 为 post、put 请求设置请求头
 
 如果是发送 post、put 请求，需要设置请求头，可以在调用方法时，利用第二个参数传入 HttpEntity 对象，HttpEntity 可以用于设置请求头信息，例如：
 
@@ -96,7 +101,7 @@ private HttpEntityRequestCallback(Object requestBody, Type responseType) {
 >   }
 >   ```
 
-### 2、为其他请求设置请求头
+### 1.2 为其他请求设置请求头
 
 如果是其它HTTP方法调用要设置请求头，可以使用exchange()方法，可以参考 [官方示例](https://docs.spring.io/spring/docs/4.3.9.RELEASE/spring-framework-reference/html/remoting.html#rest-template-headers)
 
@@ -120,9 +125,11 @@ String body = response.getBody();
 总之，设置 request header 信息，需要找到对应的 restTemplate 方法中可以使用 HttpEntity 作为参数的，提前设置好请求头信息
 
 
+
+
 ## 2、处理响应头
 
-使用 RestTemplate 中`xxxForEntity()`的方法，会返回 ResponseEntity，可以从中获取到响应状态码，响应头和 body 等信息：
+使用 RestTemplate 中`xxxForEntity()`的方法，会返回 `ResponseEntity`，可以从中获取到响应状态码，响应头和 body 等信息：
 
 ```java
 HttpHeaders requestHeaders = new HttpHeaders();
@@ -138,9 +145,11 @@ String responseHeader = response.getHeaders().getFirst("MyResponseHeader");
 String body = response.getBody();
 ```
 
+
+
 ## 3、ClientHttpRequestFactory
 
-ClientHttpRequestFactory 是 Spring 定义的一个接口，用于生产 org.springframework.http.client.ClientHttpRequest 对象，RestTemplate只是模板类，抽象了很多调用方法，而底层真正使用何种框架发送 HTTP 请求是通过 ClientHttpRequestFactory 指定的。
+ClientHttpRequestFactory 是 Spring 定义的一个接口，用于生产 org.springframework.http.client.ClientHttpRequest 对象，RestTemplate 只是模板类，抽象了很多调用方法，<u>而底层真正使用何种框架发送 HTTP 请求是通过 ClientHttpRequestFactory 指定的。</u>
 
 ```java
 /**
@@ -189,9 +198,11 @@ public RestTemplate(ClientHttpRequestFactory requestFactory) {
 
 可以看到上面注释中已经给出了Spring的两种ClientHttpRequestFactory的实现类`SimpleClientHttpRequestFactory`和`HttpComponentsClientHttpRequestFactory`
 
-### SimpleClientHttpRequestFactory
+### 3.1 SimpleClientHttpRequestFactory
 
-如果什么都不设置，RestTemplate 默认使用的是 SimpleClientHttpRequestFactory，其内部使用的是 jdk 的java.net.HttpURLConnection 创建底层连接，<font color = red>默认是没有连接池的</font>，connectTimeout 和 readTimeout 都是 **-1**，即<font color = red>没有超时时间</font>。
+如果什么都不设置，RestTemplate <u>默认</u>使用的是 SimpleClientHttpRequestFactory，其内部使用的是 jdk 的 java.net.HttpURLConnection 创建底层连接，<font color = red>默认是没有连接池的</font>，connectTimeout 和 readTimeout 都是 **-1**，即<font color = red>没有超时时间</font>。
+
+>   敲黑板：1、不使用连接池    2、没有超时时间
 
 ```java
 public class SimpleClientHttpRequestFactory implements ClientHttpRequestFactory, AsyncClientHttpRequestFactory {
@@ -276,11 +287,11 @@ public class SimpleClientHttpRequestFactory implements ClientHttpRequestFactory,
 }
 ```
 
-### HttpComponentsClientHttpRequestFactory
+### 3.2 HttpComponentsClientHttpRequestFactory
 
 HttpComponentsClientHttpRequestFactory 底层使用 Apache HttpClient 创建请求，访问远程的 Http 服务，<u>可以使用一个已经配置好的 HttpClient 实例创建 HttpComponentsClientHttpRequestFactory 请求工厂，HttpClient 实例中可以配置连接池和证书等信息</u>
 
-1.   添加HttpClient依赖
+1.   添加 HttpClient 依赖
 
      ```xml
      <dependency>
@@ -290,9 +301,9 @@ HttpComponentsClientHttpRequestFactory 底层使用 Apache HttpClient 创建请�
      </dependency>
      ```
 
-2.   设置超时时间
+2.   设置`超时时间`
 
-     设置超时时间，可以直接使用 Spring 的底层基于 HttpClient 的 HttpComponentsClientHttpRequestFactory，此处设置的是 ClientHttpRequestFactory 级别的全局超时时间
+     设置超时时间，可以直接使用 Spring 的底层基于 HttpClient 的 HttpComponentsClientHttpRequestFactory，此处设置的是 ClientHttpRequestFactory 级别的<u>全局</u>超时时间
 
      ```java
      @Configuration  
@@ -347,7 +358,7 @@ HttpComponentsClientHttpRequestFactory 底层使用 Apache HttpClient 创建请�
      }
      ```
 
-     上例中虽然没有指定http连接池，但**  HttpComponentsClientHttpRequestFactory无参构造会创建一个HttpClient，并默认使用了连接池配置，MaxTotal=10，DefaultMaxPerRoute=5 **，具体如下：
+     上例中虽然没有指定 http 连接池，<u>但HttpComponentsClientHttpRequestFactory无参构造会创建一个HttpClient，并默认使用了连接池配置，MaxTotal=10，DefaultMaxPerRoute=5</u> ，具体如下：
 
      ```java
      HttpComponentsClientHttpRequestFactory：
@@ -464,7 +475,9 @@ HttpComponentsClientHttpRequestFactory 底层使用 Apache HttpClient 创建请�
      } 
      ```
 
-## 4、自定义 MessageConverter
+
+
+## 4、消息转换
 
 RestTemplate 的无参构造中默认会初始化很多 messageConverters，用于请求/响应中的消息转换
 
@@ -507,7 +520,9 @@ public RestTemplate() {
 }
 ```
 
-Springboot 项目默认使用 jackson 做 json 转换
+<u>Springboot 项目默认使用 jackson 做 json 转换</u>
+
+
 
 使用 fastjson 做 json 转换：
 
@@ -515,64 +530,66 @@ Springboot 项目默认使用 jackson 做 json 转换
 2.  排除 jackson 的 HttpMessageConverter 转换器
 3.  添加 fastjson 的转换器
 
-排除 jackson 的 HttpMessageConverter 转换器有两种方式：
 
-1.   类路径下去掉 jackson 的支持
 
-     ```xml
-     <dependency>
-         <groupId>org.springframework.boot</groupId>
-         <artifactId>spring-boot-starter-web</artifactId>
-         <exclusions>
-             <exclusion>
-                 <artifactId>jackson-databind</artifactId> 
-                 <groupId>com.fasterxml.jackson.core</groupId>
-             </exclusion>
-         </exclusions>
-     </dependency>
-     ```
-
-2.   在初始化配置 RestTemplate 时，去掉其默认的 MappingJackson2HttpMessageConverter
-
-     ```java
-     @Bean
-     public RestTemplate restTemplate() {
-         RestTemplate restTemplate = new RestTemplate();
-         restTemplate.setRequestFactory(clientHttpRequestFactory());
-     
-         //restTemplate默认的HttpMessageConverter
-         List<HttpMessageConverter<?>> messageConverters = restTemplate.getMessageConverters();
-         List<HttpMessageConverter<?>> messageConvertersNew = new ArrayList<HttpMessageConverter<?>>();
-         
-         for(HttpMessageConverter httpMessageConverter : messageConverters){
-             //跳过MappingJackson2HttpMessageConverter
-             if (httpMessageConverter instanceof MappingJackson2HttpMessageConverter) continue;
-     
-             messageConvertersNew.add(httpMessageConverter);
-         }
-     
-         //添加fastjson转换器
-         messageConvertersNew.add(fastJsonHttpMessageConverter());
-     
-         return restTemplate;
-     }
-     
-     @Bean
-     public HttpMessageConverter fastJsonHttpMessageConverter() {
-         //MediaType
-         List<MediaType> mediaTypes = new ArrayList<>();
-         mediaTypes.add(MediaType.APPLICATION_JSON_UTF8);
-     
-         //FastJsonConfig
-         FastJsonConfig fastJsonConfig = new FastJsonConfig();
-         fastJsonConfig.setSerializerFeatures(SerializerFeature.WriteMapNullValue,
-                                              SerializerFeature.QuoteFieldNames);
-     
-         //创建FastJsonHttpMessageConverter4    Spring 4.2后使用
-         FastJsonHttpMessageConverter4 fastJsonHttpMessageConverter = new FastJsonHttpMessageConverter4();
-         fastJsonHttpMessageConverter.setSupportedMediaTypes(mediaTypes);
-         fastJsonHttpMessageConverter.setFastJsonConfig(fastJsonConfig);
-     
-         return fastJsonHttpMessageConverter;
-     }
-     ```
+>   排除 jackson 的 HttpMessageConverter 转换器有两种方式：
+>
+>   1.   类路径下去掉 jackson 的支持
+>
+>        ```xml
+>        <dependency>
+>            <groupId>org.springframework.boot</groupId>
+>            <artifactId>spring-boot-starter-web</artifactId>
+>            <exclusions>
+>                <exclusion>
+>                    <artifactId>jackson-databind</artifactId> 
+>                    <groupId>com.fasterxml.jackson.core</groupId>
+>                </exclusion>
+>            </exclusions>
+>        </dependency>
+>        ```
+>
+>   2.   在初始化配置 RestTemplate 时，去掉其默认的 MappingJackson2HttpMessageConverter
+>
+>        ```java
+>        @Bean
+>        public RestTemplate restTemplate() {
+>            RestTemplate restTemplate = new RestTemplate();
+>            restTemplate.setRequestFactory(clientHttpRequestFactory());
+>        
+>            //restTemplate默认的HttpMessageConverter
+>            List<HttpMessageConverter<?>> messageConverters = restTemplate.getMessageConverters();
+>            List<HttpMessageConverter<?>> messageConvertersNew = new ArrayList<HttpMessageConverter<?>>();
+>            
+>            for(HttpMessageConverter httpMessageConverter : messageConverters){
+>                //跳过MappingJackson2HttpMessageConverter
+>                if (httpMessageConverter instanceof MappingJackson2HttpMessageConverter) continue;
+>        
+>                messageConvertersNew.add(httpMessageConverter);
+>            }
+>        
+>            //添加fastjson转换器
+>            messageConvertersNew.add(fastJsonHttpMessageConverter());
+>        
+>            return restTemplate;
+>        }
+>        
+>        @Bean
+>        public HttpMessageConverter fastJsonHttpMessageConverter() {
+>            //MediaType
+>            List<MediaType> mediaTypes = new ArrayList<>();
+>            mediaTypes.add(MediaType.APPLICATION_JSON_UTF8);
+>        
+>            //FastJsonConfig
+>            FastJsonConfig fastJsonConfig = new FastJsonConfig();
+>            fastJsonConfig.setSerializerFeatures(SerializerFeature.WriteMapNullValue,
+>                                                 SerializerFeature.QuoteFieldNames);
+>        
+>            //创建FastJsonHttpMessageConverter4    Spring 4.2后使用
+>            FastJsonHttpMessageConverter4 fastJsonHttpMessageConverter = new FastJsonHttpMessageConverter4();
+>            fastJsonHttpMessageConverter.setSupportedMediaTypes(mediaTypes);
+>            fastJsonHttpMessageConverter.setFastJsonConfig(fastJsonConfig);
+>        
+>            return fastJsonHttpMessageConverter;
+>        }
+>        ```

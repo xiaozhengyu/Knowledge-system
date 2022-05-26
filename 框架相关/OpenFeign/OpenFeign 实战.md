@@ -10,5 +10,5 @@
 
 3.   日志增强
 
-     <(￣︶￣)↗[OpenFeign 实战 - 日志增强.md](./OpenFeign 实战 - 配置日志打印.md)
+     <(￣︶￣)↗[OpenFeign 实战 - 日志增强.md](./OpenFeign 实战 - 日志增强.md)
 
