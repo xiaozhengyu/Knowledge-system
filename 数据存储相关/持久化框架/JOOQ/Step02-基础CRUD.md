@@ -1,0 +1,1 @@
+https://jooq.diamondfsd.com/learn/section-2-base-curd.html
