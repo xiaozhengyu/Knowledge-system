@@ -250,3 +250,86 @@ https://maven.apache.org/plugins/maven-shade-plugin/examples/executable-jar.html
 
 https://maven.apache.org/plugins/maven-shade-plugin/examples/resource-transformers.html
 
+
+
+---
+
+## 二、Apache Maven Assembly Plugin
+
+### 2.1 使用流程
+
+>   官方文档：https://maven.apache.org/plugins/maven-assembly-plugin/usage.html
+
+![image-20220712134930698](markdown/Maven - 打包插件.assets/image-20220712134930698.png)
+
+1.   编写 Assembly 配置文件
+
+     后文会详细说明，此处暂不说明
+
+     
+
+2.   在 pom.xml 中指定 Assembly 配置文件
+
+     ```xml
+     <project>
+         ...
+         <build>
+             ...
+             <plugins>
+                 ...
+                 <plugin>
+                     <groupId>org.apache.maven.plugins</groupId>
+                     <artifactId>maven-assembly-plugin</artifactId>
+                     <version>3.3.0</version>
+                     <configuration>
+                         <descriptors>
+                             <descriptor>src/main/assembly/src.xml</descriptor>
+                         </descriptors>
+                     </configuration>
+                     <executions>
+                         <!--指定执行方式-->
+                         <execution>
+                             <id>make-assembly</id> <!-- this is used for inheritance merges -->
+                             <phase>package</phase> <!-- bind to the packaging phase -->
+                             <goals>
+                                 <goal>single</goal>
+                             </goals>
+                         </execution>
+                     </executions>                
+                 </plugin>
+                 ...
+             </plugins>
+             ...
+         </build>
+         ...
+     </project>
+     ```
+
+3.   Assembly 生效：Assembly 作用与 Maven 的 package 阶段
+
+     ```shell
+     mvn package
+     ```
+
+
+
+### 2.2 配置
+
+Assembly 提供了大量的描述符同于定制项目的打包方式：https://maven.apache.org/plugins/maven-assembly-plugin/assembly.html
+
+
+
+### 2.3 DEMO
+
+>   官网DEMO：
+>
+>   -   Working with Single Projects
+>       -   [Filtering Some Distribution Files](https://maven.apache.org/plugins/maven-assembly-plugin/examples/single/filtering-some-distribution-files.html)
+>       -   [Including/Excluding Artifacts](https://maven.apache.org/plugins/maven-assembly-plugin/examples/single/including-and-excluding-artifacts.html)
+>       -   [Using Component Descriptors](https://maven.apache.org/plugins/maven-assembly-plugin/examples/single/using-components.html)
+>       -   [Using Repositories](https://maven.apache.org/plugins/maven-assembly-plugin/examples/single/using-repositories.html)
+>       -   [Using Container Descriptor Handlers](https://maven.apache.org/plugins/maven-assembly-plugin/examples/single/using-container-descriptor-handlers.html)
+>   -   Working with Multi-Module Projects
+>       -   [Adding Module Sources to the Assembly](https://maven.apache.org/plugins/maven-assembly-plugin/examples/multimodule/module-source-inclusion-simple.html)
+>       -   [Adding Module Binaries to the Assembly](https://maven.apache.org/plugins/maven-assembly-plugin/examples/multimodule/module-binary-inclusion-simple.html)
+>   -   [Sharing Assembly Descriptors](https://maven.apache.org/plugins/maven-assembly-plugin/examples/sharing-descriptors.html)
