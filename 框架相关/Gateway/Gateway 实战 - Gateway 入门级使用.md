@@ -32,7 +32,7 @@
 
 ```yaml
 server:
-  port: 8011
+  port: 8011 # Gateway 自己对外提供服务的接口
 
 spring:
   application:
@@ -86,3 +86,5 @@ public class GatewayConfig {
     }
 }
 ```
+
+>   Note：尽量避免硬编码

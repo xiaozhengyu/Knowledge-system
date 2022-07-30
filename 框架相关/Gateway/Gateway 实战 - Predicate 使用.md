@@ -14,7 +14,7 @@
 
 ![image-20220316151640020](markdown/Gateway 实战 - Predicate 使用.assets/image-20220316151640020.png)
 
-那么，这个 RoutePredicateFactory 是什么？Spring Cloud Gateway 创建 Route 对象时， 使用 RoutePredicateFactory 创建 Predicate 对象，然后将 Predicate 对象赋值给 Route。 Spring Cloud Gateway 包含许多内置的 Route Predicate Factories，用于匹配 HTTP 请求的不同属性。
+那么，这个 RoutePredicateFactory 是什么？Spring Cloud Gateway 创建 Route 对象时， 使用 RoutePredicateFactory 创建 Predicate 对象，然后将 Predicate 对象赋值给 Route。 <u>Spring Cloud Gateway 包含许多内置的 Route Predicate Factories，用于匹配 HTTP 请求的不同属性。</u>
 
 ![路由谓词工厂功能划分](markdown/Gateway 实战 - Predicate 使用.assets/RoutePredicateFactory.png)
 

@@ -29,9 +29,9 @@ Spring Cloud Gateway 基于 Spring 5.0、Spring Boot 2.0 以及 Project Reactor 
 
 ## Gateway 三大核心概念
 
--   路由（Route）：路由是 Gateway 的基本模块，它由 ID、目标 URI、一系列断言、一系列过滤器组成
--   断言（Predicate）：使用断言可以对 HTTP 请求进行筛选（请求头、请求参数等）
--   过滤器（Filter）：使用过滤器可以在路由前后对 HTTP 请求进行修改
+-   **路由（Route）**：路由是 Gateway 的基本模块，它由 ID、目标 URI、一系列断言、一系列过滤器组成
+    -   **断言（Predicate）**：使用断言可以对 HTTP 请求进行筛选（请求头、请求参数等）
+    -   **过滤器（Filter）**：使用过滤器可以在路由前后对 HTTP 请求进行修改
 
 ![Gate核心概念](markdown/Gateway 理论.assets/image-20220314215234918.png)
 
