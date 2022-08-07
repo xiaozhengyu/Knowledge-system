@@ -12,8 +12,6 @@
 
 
 
-## 
-
 从宏观层面看，Sentinel具有如下能力：
 
 -   监控（Monitoring）：Sentinel会不断检查Master和Slave是否正常工作
