@@ -297,6 +297,8 @@ public class ConfigApplication {
 </project>
 ```
 
+关键：spring-cloud-starter-config
+
 
 
 ### 配置文件
@@ -475,7 +477,7 @@ public class ConfigCenterController {
 
     ![image-20220812204520206](markdown/Config 实战 - 客户端重启刷新配置.assets/image-20220812204520206.png)
 
-    可以看到，现在 Config Client 已经成功获取到最新的配置。然而，这在实际应用中，这个方案存在很大的局限性——很多服务不能随便重启
+    可以看到，现在 Config Client 已经成功获取到最新的配置。然而，这个方案存在很大的局限性——在实际应用中，很多服务不能随便重启
 
     
 
