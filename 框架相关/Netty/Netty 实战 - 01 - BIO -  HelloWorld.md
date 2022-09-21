@@ -1,6 +1,8 @@
 # BIO - HelloWorld
 
 >   使用 BIO 模式搭建简单的 Server，加深对 BIO 模式的理解：同步 + 阻塞
+>
+>   ![image-20220921143742913](markdown/Netty 实战 - 01 - BIO -  HelloWorld.assets/image-20220921143742913.png)
 
 [toc]
 
