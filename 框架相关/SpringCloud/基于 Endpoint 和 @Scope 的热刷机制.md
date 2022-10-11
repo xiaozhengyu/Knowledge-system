@@ -210,7 +210,7 @@ public class ContextRefresher {
          }
          ```
 
-    2.   最终，Spring 会根据 BeanDefinition 去处理 Bean，此时 @Scope 的定义开始起作用：
+    2.   最终，Spring 会根据 BeanDefinition 去处理 Bean，此时 @Scope 开始起作用：
 
          
 
