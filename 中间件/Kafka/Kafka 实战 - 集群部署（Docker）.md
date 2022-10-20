@@ -302,48 +302,40 @@ cd opt/kafka_2.13-2.8.1/
 
 ![image-20221019211013837](markdown/Kafka 实战 - 集群部署（Docker）.assets/image-20221019211013837.png)
 
-创建 Replication 为1，Partition 为3 的 Topic：
+创建一个 Topic，具有 3 个分区，每个分区的数据存两份（一主一备）：
 
 ```shell
-unset JMX_PORT; bin/kafka-topics.sh --create --zookeeper zook1:2181 --replication-factor 1 --partitions 3 --topic partopic
+unset JMX_PORT; bin/kafka-topics.sh --create --zookeeper zook1:2181 --replication-factor 2 --partitions 3 --topic myTopic
 ```
 
-![image-20221020095547700](markdown/Kafka 实战 - 集群部署（Docker）.assets/image-20221020095547700.png)
+![image-20221020211631468](markdown/Kafka 实战 - 集群部署（Docker）.assets/image-20221020211631468.png)
 
 查看 Topic 状态：
 
 ```shell
-bin/kafka-topics.sh --describe --zookeeper zook1:2181 --topic partopic
+unset JMX_PORT; bin/kafka-topics.sh --describe --zookeeper zook1:2181 --topic myTopic
 ```
 
-![image-20221020095607597](markdown/Kafka 实战 - 集群部署（Docker）.assets/image-20221020095607597.png)
+![image-20221020211703433](markdown/Kafka 实战 - 集群部署（Docker）.assets/image-20221020211703433.png)
 
 查看 Kafka Manager：
 
-![image-20221020095936508](markdown/Kafka 实战 - 集群部署（Docker）.assets/image-20221020095936508.png)
+![image-20221020211823227](markdown/Kafka 实战 - 集群部署（Docker）.assets/image-20221020211823227.png)
 
-![image-20221020095809750](markdown/Kafka 实战 - 集群部署（Docker）.assets/image-20221020095809750.png)
+![image-20221020211856519](markdown/Kafka 实战 - 集群部署（Docker）.assets/image-20221020211856519.png)
 
-![image-20221020100052828](markdown/Kafka 实战 - 集群部署（Docker）.assets/image-20221020100052828.png)
+![image-20221020211946003](markdown/Kafka 实战 - 集群部署（Docker）.assets/image-20221020211946003.png)
+
+最终的创建结果：
+
+![image-20221020212604268](markdown/Kafka 实战 - 集群部署（Docker）.assets/image-20221020212604268.png)
 
 
 
->   Note：关于 kafka-topic.sh
->
->   上文使用的命令中的 `replication-factor` 其实是让 Kafka 自动分配 Replication 的存储位置：
+>   上文使用的命令中的 `replication-factor` 其实是让 Kafka 自动分配 Replication 的存储位置，其实我们也可以使用 `replica-assignment` 自己指定 Replication 的存储位置：
 >
 >   ```shell
->   unset JMX_PORT; bin/kafka-topics.sh --create --zookeeper zook1:2181 --replication-factor 1 --partitions 3 --topic partopic
+>   unset JMX_PORT; bin/kafka-topics.sh --create --zookeeper zook1:2181 --replica-assignment 1:2,2:3,3:1 --topic partopic
 >   ```
 >
->   
->
->   
->
->   其实我们也可以使用 `replica-assignment` 自己指定 Replication 的存储位置：
->
->   ```shell
->   unset JMX_PORT; bin/kafka-topics.sh --create --zookeeper zook1:2181 --replica-assignment 0:1,1:2,2:0 --topic partopic2
->   ```
->
->   -   0:1,1:2,2:0 中的数字均为 broker.id：3个分区(逗号分隔)，每个分区有两个副本(副本所在的 broker 以冒号分割)
+>   -   “1:2,2:3,3:1” 表示一共有3个分区，每个分区的数据存两份，并且存储在指定的Brocker
