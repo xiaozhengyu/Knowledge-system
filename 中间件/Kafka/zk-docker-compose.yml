@@ -1,0 +1,59 @@
+version: '1'
+
+services:
+  zook1:
+    image: zookeeper:latest
+    #restart: always #自动重新启动
+    hostname: zook1
+    container_name: zook1 #容器名称，方便在rancher中显示有意义的名称
+    ports:
+    - 2183:2181 #将本容器的zookeeper默认端口号映射出去
+    volumes: # 挂载数据卷 前面是宿主机即本机的目录位置，后面是docker的目录
+    - "/d/Docker/Mount/Zookeeper/zook1/data:/data"
+    - "/d/Docker/Mount/Zookeeper/zook1/datalog:/datalog"
+    - "/d/Docker/Mount/Zookeeper/zook1/logs:/logs"
+    environment:
+        ZOO_MY_ID: 1  #即是zookeeper的节点值，也是kafka的brokerid值
+        ZOO_SERVERS: server.1=zook1:2888:3888;2181 server.2=zook2:2888:3888;2181 server.3=zook3:2888:3888;2181
+    networks:
+        docker-net:
+            ipv4_address: 172.20.10.11
+
+  zook2:   
+    image: zookeeper:latest
+    #restart: always #自动重新启动
+    hostname: zook2
+    container_name: zook2 #容器名称，方便在rancher中显示有意义的名称
+    ports:
+    - 2184:2181 #将本容器的zookeeper默认端口号映射出去
+    volumes:
+    - "/d/Docker/Mount/Zookeeper/zook2/data:/data"
+    - "/d/Docker/Mount/Zookeeper/zook2/datalog:/datalog"
+    - "/d/Docker/Mount/Zookeeper/zook2/logs:/logs"
+    environment:
+        ZOO_MY_ID: 2  #即是zookeeper的节点值，也是kafka的brokerid值
+        ZOO_SERVERS: server.1=zook1:2888:3888;2181 server.2=zook2:2888:3888;2181 server.3=zook3:2888:3888;2181
+    networks:
+        docker-net:
+            ipv4_address: 172.20.10.12
+            
+  zook3:   
+    image: zookeeper:latest
+    #restart: always #自动重新启动
+    hostname: zook3
+    container_name: zook3 #容器名称，方便在rancher中显示有意义的名称
+    ports:
+    - 2185:2181 #将本容器的zookeeper默认端口号映射出去
+    volumes:
+    - "/d/Docker/Mount/Zookeeper/zook3/data:/data"
+    - "/d/Docker/Mount/Zookeeper/zook3/datalog:/datalog"
+    - "/d/Docker/Mount/Zookeeper/zook3/logs:/logs"
+    environment:
+        ZOO_MY_ID: 3  #即是zookeeper的节点值，也是kafka的brokerid值
+        ZOO_SERVERS: server.1=zook1:2888:3888;2181 server.2=zook2:2888:3888;2181 server.3=zook3:2888:3888;2181
+    networks:
+        docker-net:
+            ipv4_address: 172.20.10.13
+networks:
+  docker-net:
+      name: docker-net
