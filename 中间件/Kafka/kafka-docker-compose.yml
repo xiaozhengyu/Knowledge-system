@@ -11,14 +11,9 @@ services:
       - 9193:9193
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_LISTENERS: INSIDE://:9093,OUTSIDE://:9193
-      #KAFKA_ADVERTISED_LISTENERS=INSIDE://<container>:9092,OUTSIDE://<host>:9094
-      SKAFKA_ADVERTISED_LISTENERS: INSIDE://kafka1:9093,OUTSIDE://localhost:9193
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_LISTENERS: PLAINTEXT://kafka1:9093
       KAFKA_ZOOKEEPER_CONNECT: zook1:2181,zook2:2181,zook3:2181
       ALLOW_PLAINTEXT_LISTENER : 'yes'
-      JMX_PORT: 9999 #开放JMX监控端口，来监测集群数据
     volumes:
       - /d/Docker/Mount/Kafka/kafka1/wurstmeister/kafka:/wurstmeister/kafka
       - /d/Docker/Mount/Kafka/kafka1/kafka:/kafka
@@ -40,14 +35,9 @@ services:
       - 9194:9194
     environment:
       KAFKA_BROKER_ID: 2
-      KAFKA_LISTENERS: INSIDE://:9094,OUTSIDE://:9194
-      #KAFKA_ADVERTISED_LISTENERS=INSIDE://<container>:9092,OUTSIDE://<host>:9094
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka2:9094,OUTSIDE://localhost:9194
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_LISTENERS: PLAINTEXT://kafka2:9094
       KAFKA_ZOOKEEPER_CONNECT: zook1:2181,zook2:2181,zook3:2181
       ALLOW_PLAINTEXT_LISTENER : 'yes'
-      JMX_PORT: 9999 #开放JMX监控端口，来监测集群数据
     volumes:
       - /d/Docker/Mount/Kafka/kafka2/wurstmeister/kafka:/wurstmeister/kafka
       - /d/Docker/Mount/Kafka/kafka2/kafka:/kafka
@@ -69,14 +59,9 @@ services:
       - 9195:9195
     environment:
       KAFKA_BROKER_ID: 3
-      KAFKA_LISTENERS: INSIDE://:9095,OUTSIDE://:9195
-      #KAFKA_ADVERTISED_LISTENERS=INSIDE://<container>:9092,OUTSIDE://<host>:9094
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka3:9095,OUTSIDE://localhost:9195
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_LISTENERS: PLAINTEXT://kafka3:9095
       KAFKA_ZOOKEEPER_CONNECT: zook1:2181,zook2:2181,zook3:2181
       ALLOW_PLAINTEXT_LISTENER : 'yes'
-      JMX_PORT: 9999 #开放JMX监控端口，来监测集群数据
     volumes:
       - /d/Docker/Mount/Kafka/kafka3/wurstmeister/kafka:/wurstmeister/kafka
       - /d/Docker/Mount/Kafka/kafka3/kafka:/kafka
