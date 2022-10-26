@@ -130,7 +130,8 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_LISTENERS: PLAINTEXT://kafka1:9093
-      KAFKA_ZOOKEEPER_CONNECT: zook1:2181,zook2:2181,zook3:2181
+      #KAFKA_ZOOKEEPER_CONNECT: zook1:2181,zook2:2181,zook3:2181  默认情况下，Kafka的数据存储在ZK根目录
+      KAFKA_ZOOKEEPER_CONNECT: zook1:2181,zook2:2181,zook3:2181/kafka
       ALLOW_PLAINTEXT_LISTENER : 'yes'
       JMX_PORT: 9999 #开放JMX监控端口，来监测集群数据
     volumes:
@@ -155,7 +156,8 @@ services:
     environment:
       KAFKA_BROKER_ID: 2
       KAFKA_LISTENERS: PLAINTEXT://kafka2:9094
-      KAFKA_ZOOKEEPER_CONNECT: zook1:2181,zook2:2181,zook3:2181
+      #KAFKA_ZOOKEEPER_CONNECT: zook1:2181,zook2:2181,zook3:2181  默认情况下，Kafka的数据存储在ZK根目录
+      KAFKA_ZOOKEEPER_CONNECT: zook1:2181,zook2:2181,zook3:2181/kafka
       ALLOW_PLAINTEXT_LISTENER : 'yes'
       JMX_PORT: 9999 #开放JMX监控端口，来监测集群数据
     volumes:
@@ -180,7 +182,8 @@ services:
     environment:
       KAFKA_BROKER_ID: 3
       KAFKA_LISTENERS: PLAINTEXT://kafka3:9095
-      KAFKA_ZOOKEEPER_CONNECT: zook1:2181,zook2:2181,zook3:2181
+      #KAFKA_ZOOKEEPER_CONNECT: zook1:2181,zook2:2181,zook3:2181  默认情况下，Kafka的数据存储在ZK根目录
+      KAFKA_ZOOKEEPER_CONNECT: zook1:2181,zook2:2181,zook3:2181/kafka
       ALLOW_PLAINTEXT_LISTENER : 'yes'
       JMX_PORT: 9999 #开放JMX监控端口，来监测集群数据
     volumes:
