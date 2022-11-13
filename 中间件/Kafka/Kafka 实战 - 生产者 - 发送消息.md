@@ -155,7 +155,7 @@ private static void asyncSend() {
 }
 
 /**
- * 异步发送
+ * 同步发送
  */
 private static void syncSend() throws ExecutionException, InterruptedException {
     KafkaProducer<String, String> stringKafkaProducer = buildStringKafkaProducer();
