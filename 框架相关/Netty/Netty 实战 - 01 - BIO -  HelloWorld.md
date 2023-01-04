@@ -113,7 +113,7 @@ public class BioServer {
      可以获得印证：
 
      -   监听连接和处理连接的是不同的线程：一个线程专门负责监听连接，监听到连接后将连接交个一个 Thread 进行处理
-     -   每个被未托的 Thread 专注于指派的连接，即使连接暂时是空闲的
+     -   每个被委托的 Thread 专注于指派的连接，即使连接暂时是空闲的
      -   socketInputStream.read(bytes) 确实会导致阻塞
 
      

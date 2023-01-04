@@ -29,6 +29,7 @@ public class NioServer {
 
     private final Logger logger = LoggerFactory.getLogger(NioServer.class);
 
+    // 使用一个Selector处理所有事件
     private void serverV1() throws IOException {
         // 1.创建 Selector
         Selector selector = Selector.open();
@@ -103,6 +104,7 @@ public class NioServer {
         }
     }
 
+    // 使用不同的Selector处理不同的事件
     private void serverV2() throws IOException {
         // 1.创建 Selector
         Selector boosSelector = Selector.open(); // 只负责监听连接请求 + 创建连接
@@ -162,6 +164,7 @@ public class NioServer {
                 }
             }
         }, "boosThread");
+        
         Thread workerThread = new Thread(() -> {
             logger.info("workerThread开始工作...");
             while (true) {
@@ -207,9 +210,7 @@ public class NioServer {
         boosThread.start();
         workerThread.start();
 
-        while (true) {
-
-        }
+        while (true) {}
     }
 
     public static void main(String[] args) throws IOException {
