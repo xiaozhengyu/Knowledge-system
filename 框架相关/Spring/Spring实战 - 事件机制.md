@@ -1,46 +1,51 @@
 # Spring 事件机制
 
->   参考文章：https://www.jianshu.com/p/bab2da26f282
-
 
 
 [toc]
 
 
 
-## 理论说明
+## 一、理论说明
 
-在 Spring 中有一个事件机制，该机制基于`观察者模式`实现。通过 Spring 的事件机制可以达到以下目的：
+Spring 的事件机制基于`观察者模式`实现，借助 Spring 的事件机制可以实现以下效果：
 
--   应用模块间的解耦
--   对同一种事件可以根据需要定义多种处理方式
--   对主线应用不干扰，是一个极佳的开闭原则实践
-
-
-
-Spring 事件机制相关的类：
-
--   ApplicationEvent：自定义事件的时候需要实现这个抽象类
-
-    ![image-20221009095724936](markdown/Spring实战 - 事件机制.assets/image-20221009095724936.png)
-
-    
-
--   ApplicationEventPublisher：Spring 的 ApplicationContext 默认实现了这个接口，用于<u>在上下文内发布事件</u>
-
-    ![image-20221009095803588](markdown/Spring实战 - 事件机制.assets/image-20221009095803588.png)
-
--   ApplicationListener：自定义事件监听器的时候需要实现这个接口
-
-    ![image-20221009095828311](markdown/Spring实战 - 事件机制.assets/image-20221009095828311.png)
-
-
+-   模块间的解耦
+-   对同一事件可以根据需要增减处理方式，并且处理过程不会干扰主流程（完美的遵循了开闭原则）
 
 >   **观察者模式：**观察者模式建立一种对象与对象之间的依赖关系。当一个对象（称之为：<u>观察目标</u>）发生改变时，它将主动通知其他对象（称之为：<u>观察者</u>），这些被通知对象将做出相应的反应。一个观察目标可以有多个观察者，而这些观察者之间相互独立，可以根据需要进行增减，这就使得系统更加易于扩展。
 
 
 
-## 实战演示
+
+
+相关类：
+
+-   ApplicationEvent：自定义事件的时候可以实现这个抽象类
+
+    ![image-20221009095724936](markdown/Spring实战 - 事件机制.assets/image-20221009095724936.png)
+
+    
+
+-   ApplicationEventPublisher：Spring 的 ApplicationContext 默认实现了这个接口，用于在上下文内发布事件
+
+    ![image-20221009095803588](markdown/Spring实战 - 事件机制.assets/image-20221009095803588.png)
+
+-   ApplicationListener：自定义事件监听器的时候可以实现这个接口
+
+    ![image-20221009095828311](markdown/Spring实战 - 事件机制.assets/image-20221009095828311.png)
+
+
+
+![image-20230228193948272](markdown/Spring实战 - 事件机制.assets/image-20230228193948272.png)
+
+
+
+## 二、实战演示
+
+
+
+### 2.1 简单事件
 
 自定义事件：
 
@@ -93,7 +98,7 @@ public class UserEvent extends ApplicationEvent {
 }
 ```
 
-自定义事件发布器：
+事件发布器：
 
 ```java
 package com.xzy;
@@ -131,7 +136,7 @@ public class UserEventPublisher {
 }
 ```
 
-自定义监听器：
+事件监听器：
 
 ```java
 package com.xzy;
@@ -190,3 +195,177 @@ public static void main(String[] args) throws Exception {
 
 -   一个事件可以有多个监听器，各个监听器相互独立
 -   事件必须发布在监听器所在的上下文
+
+
+
+### 2.2 泛型事件
+
+
+
+#### 2.2.1 冗余的模板事件
+
+也许项目刚开始的时候系统中只有一个自定义事件：
+
+```java
+@Getter
+@ToString
+class AaaEvent extends ApplicationEvent {
+
+    private final OperationType eventType; // 事件类型
+    private final AaaData eventData; // 携带的数据
+
+    public AaaEvent(Object source, OperationType eventType, AaaData eventData) {...}
+}
+```
+
+但是随着项目不断迭代，系统中出现了许多相似的“模板型”事件：
+
+```java
+@Getter
+@ToString
+class BbbEvent extends ApplicationEvent {
+    private final OperationType eventType; // 事件类型
+    private final BbbData eventData; // 携带的数据
+
+    public BbbEvent(Object source, OperationType eventType, BbbData eventData) {...}
+}
+```
+
+此时可以考虑重新设计通用的事件，消除冗余的代码。
+
+
+
+#### 2.2.2 简单的通用事件
+
+在 Java 提供泛型特性之前，可以借助 Object + Class 设计通用事件：
+
+```java
+@Getter
+@ToString
+class GenericEvent extends ApplicationEvent {
+
+    private final OperationType eventType;
+    private final Object eventData; // 携带的数据
+    private final Class<?> clazz; // 数据的类型
+
+    public GenericEvent(Object source, OperationType eventType, Object eventData, Class<?> clazz) {...}
+}
+```
+
+```java
+@EventListener
+public void onAaaEvent(GenericEvent genericEvent) {
+
+    Class<?> clazz = genericEvent.getClazz(); // 不够优雅，不够方便
+    if (clazz == AaaData.class) {
+        AaaData aaaData = (AaaData) clazz.cast(genericEvent.getEventData());
+        ...
+    }
+}
+
+@EventListener
+public void onBbbEvent(GenericEvent genericEvent) {
+
+    Class<?> clazz = genericEvent.getClazz();
+    if (clazz == BbbData.class) {
+        BbbData bbbData = (BbbData) clazz.cast(genericEvent.getEventData());
+        ...
+    }
+}
+```
+
+Java 推出泛型特性以后，应该优先考虑借助泛型来实现通用事件，因为泛型比 Object 更优雅，更方便，更安全。
+
+
+
+#### 2.2.3 优雅的通用事件
+
+
+
+也许你会想当然的设计出这样的泛型事件：
+
+```java
+@Getter
+@ToString
+public class GenericEvent<T> extends ApplicationEvent {
+
+    private final OperationType eventType;
+    private final T eventData; // 携带的数据
+
+
+    public GenericEvent(Object source, OperationType eventType, T eventData) {...}
+}
+```
+
+并且预期 Spring 会根据 eventData 的具体类型将不同的事件通知给各个 Listener：
+
+```java
+@EventListener
+public void onAaaEvent0(GenericEvent<AaaData> genericEvent) {
+    logger.info("onAaaEvent0 监听到事件：{}", genericEvent);
+    ...
+}
+
+@EventListener
+public void onAaaEvent1(GenericEvent<Object> genericEvent) {
+    logger.info("onAaaEvent2 监听到事件：{}", genericEvent);
+    ...
+}
+
+@EventListener
+public void onAaaEvent2(GenericEvent<?> genericEvent) {
+    logger.info("onAaaEvent1 监听到事件：{}", genericEvent);
+    ...
+}
+```
+
+然而最终的结果却出乎你的意料——Listener 会受到所有类型的 GenericEvent，不管内部的 eventData 到底是什么类型：
+
+![image-20230301215115682](markdown/Spring实战 - 事件机制.assets/image-20230301215115682.png)
+
+其实在 Spring 中定义泛型事件并不复杂，只需要注意一点小细节：
+
+```java
+@Getter
+@ToString
+public class GenericEvent<T> extends ApplicationEvent implements ResolvableTypeProvider {
+
+
+    private final OperationType eventType;
+    private final T eventData;
+
+
+    public GenericEvent(Object source, OperationType eventType, T eventData) {...}
+
+    /**
+     * Return the {@link ResolvableType} describing this instance
+     * (or {@code null} if some sort of default should be applied instead).
+     */
+    @Override
+    public ResolvableType getResolvableType() {
+        return ResolvableType.forClassWithGenerics(
+                this.getClass(),
+                ResolvableType.forClass(this.eventData.getClass())
+        );
+    }
+}
+```
+
+是的，只需要实现 ResolvableTypeProvider 接口即可。下面是测试效果：
+
+![image-20230301215843163](markdown/Spring实战 - 事件机制.assets/image-20230301215843163.png)
+
+可以看到：
+
+1.   onAaaEvent0(GenericEvent<AaaData>)这个 Listener 只监听到了 eventData 类型为 AaaData 的事件
+2.   onAaaEvent1(GenericEvent<Object>)这个 Listener 监听到了所有 evenData 类型的事件
+3.   onAaaEvent2(GenericEvent<?>)这个 Listener 没有监听到任何事件
+
+
+
+上面的结果1，2比较好理解，但是结果3有点奇怪，下面将从源码层面探究 Spring 到底是如何将事件分发到各个 Listener 的。
+
+
+
+##### 2.2.3.1 源码探究
+
