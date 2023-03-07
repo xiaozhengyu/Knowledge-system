@@ -6,13 +6,13 @@
 
 ## ApplicationEventMulticaster
 
->   `Multicast`，译作广播、群播、多播。在计算机网络中，Multicast 指的是将消息同时传递给一组目标地址。
+>   `Multicast`，译作广播、群播、多播。在计算机网络中，Multicast 指的将消息同时传递给一组目标地址。
 
 
 
 ### 接口说明
 
-从功能的角度出发，ApplicationEventMulticaster 中的方法可以分为两类：**管理监听器**、**管理事件**
+从功能的角度出发，ApplicationEventMulticaster 中的方法可以分为两类：管理监听器、管理事件
 
 ```java
 public interface ApplicationEventMulticaster {
@@ -88,15 +88,10 @@ ApplicationEventMulticaster 内定义了两个方法分别用于管理<u>普通�
      普通事件监听器：
 
      ```java
-     // 基于接口
      @Component
      public class XxxEventListener implements ApplicationListener<XxxEvent> {...}
-     
-     // 基于注解
-     @EventListener
-     public void onXxxEvent(XxxEvent xxxEvent) {}
      ```
-
+     
 2.   **泛型事件**
 
      泛型事件：
@@ -112,23 +107,20 @@ ApplicationEventMulticaster 内定义了两个方法分别用于管理<u>普通�
      泛型事件监听器：
 
      ```java
-     // 基于接口
      @Component
      public class XxxEventListener implements ApplicationListener<XxxEvent<XxxType>> {...}
-     
-     // 基于注解
-     @EventListener
-     public void onXxxEvent(XxxEvent<XxxType> xxxEvent) {}
      ```
 
 
 
 ### 接口实现
 
->   Q：关于实现 ApplicationEventMulticaster 接口你有什么想法、思路？
+>   Q：关于实现 ApplicationEventMulticaster 接口你有什么思路？
 >
->   A：实现接口的关键是如何维护 Listener 与 Event 之间的对应关系，或者说如何判断一个 Event 应该分发给哪些 Listener。除此之外，才需要考虑各种并发问题、查找效率问题。
+>   A：实现接口的关键是如何确定 Listener 与 Event 之间的对应关系。
 >
+>   -   普通事件监听器：利用反射可以解析出 Listener 实现 ApplicationListener 接口时传递的类型参数是什么？而这个类型参数就是这个 Listener 对应的 Event
+>   -   泛型事件监听器：由于 Java 的泛型存在`类型擦除`，因此没有办法利用反射机制准确的解析出 Listener 对应的 Event。此时可以采取“迂回策略”——Listener 对外提供一个方法用于表明自己到底需要监听那种 Event，之后只要在解析 Listener 时调用这个方法即可。
 
 
 
