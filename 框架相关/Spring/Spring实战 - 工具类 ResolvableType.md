@@ -143,78 +143,82 @@ Type 的子接口以及实现类：
 
 ## 二、Spring 中的 ResolvableType
 
-Spring 中存在许多解析泛型信息的场景，虽然可以直接使用 JDK 提供的 Type，但 Spring 在 Type 的基础上进一步抽象，推出了更加好用的 ResolvableType。
+ResolvableType 是 Spring 中解析泛型信息的一个工具类，它封装了 Type，使得泛型信息的解析变得更加简单。
 
->   **Type 与 ResolvableType 的使用对比**
->
->   要解析的类：
->
->   ```java
->   public class GenericClass {
->       private HashMap<String, List<Integer>> field;
->   }
->   ```
->
->   使用 Type 解析：
->
->   ```java
->       /**
->        * 使用JDK提供的Type解析泛型信息，需要进行强制类型转换
->        *
->        * @throws NoSuchFieldException -
->        */
->       private static void analysisByJDK() throws NoSuchFieldException {
->           Field field = GenericClass.class.getDeclaredField("field");
->           ParameterizedType fieldType = (ParameterizedType) field.getGenericType();
->           Type[] argType = fieldType.getActualTypeArguments();
->           log.info("解析HashMap<String, List<Integer>>中的HashMap：{}", fieldType.getRawType());
->           log.info("解析HashMap<String, List<Integer>>中的HashMap的父类型：{}", ((Class) fieldType.getRawType()).getSuperclass());
->           log.info("解析HashMap<String, List<Integer>>中的String：{}", ((Class) argType[0]));
->           log.info("解析HashMap<String, List<Integer>>中的List<Integer>：{}", ((ParameterizedType) argType[1]));
->           log.info("解析HashMap<String, List<Integer>>中的List：{}", ((ParameterizedType) argType[1]).getRawType());
->           log.info("解析HashMap<String, List<Integer>>中的Integer：{}", ((Class) ((ParameterizedType) argType[1]).getActualTypeArguments()[0]));
->       }
->   ```
->
->   使用 ResolvableType 解析：
->
->   ```java
->       /**
->        * 使用Spring的ResolvableType解析泛型信息，相对简单
->        *
->        * @throws NoSuchFieldException -
->        */
->       private static void analysisBySpring() throws NoSuchFieldException {
->           Field field = GenericClass.class.getDeclaredField("field");
->           ResolvableType fieldResolvableType = ResolvableType.forField(field);
->           log.info("解析HashMap<String, List<Integer>>中的HashMap：{}", fieldResolvableType.getRawClass());
->           log.info("解析HashMap<String, List<Integer>>中的HashMap的父类型：{}", fieldResolvableType.getSuperType().getRawClass());
->           log.info("解析HashMap<String, List<Integer>>中的HashMap的父类型：{}", fieldResolvableType.getSuperType());
->           log.info("解析HashMap<String, List<Integer>>中的String：{}", fieldResolvableType.getGeneric(0).resolve());
->           log.info("解析HashMap<String, List<Integer>>中的List<Integer>：{}", fieldResolvableType.getGeneric(1));
->           log.info("解析HashMap<String, List<Integer>>中的List：{}", fieldResolvableType.getGeneric(1).resolve());
->           log.info("解析HashMap<String, List<Integer>>中的Integer：{}", fieldResolvableType.getGeneric(1, 0));
->       }
->   ```
->
->   处理结果：
->
->   ```
->   ========== Type ==========
->   [main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的HashMap：class java.util.HashMap
->   [main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的HashMap的父类型：class java.util.AbstractMap
->   [main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的String：class java.lang.String
->   [main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的List<Integer>：java.util.List<java.lang.Integer>
->   [main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的List：interface java.util.List
->   [main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的Integer：class java.lang.Integer
->   ========== ResolvableType ==========
->   [main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的HashMap：class java.util.HashMap
->   [main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的HashMap的父类型：class java.util.AbstractMap
->   [main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的HashMap的父类型：java.util.AbstractMap<java.lang.String, java.util.List<java.lang.Integer>>
->   [main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的String：class java.lang.String
->   [main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的List<Integer>：java.util.List<java.lang.Integer>
->   [main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的List：interface java.util.List
->   [main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的Integer：java.lang.Integer
->   ```
->
->   可以看到，使用 Type 则需要进行各种强制类型转换，然后才能调用不同类的不同接口。相比之下，泛型类的各种信息可以统一使用 ResolvableType 进行表示，各种信息可以直接通过 ResolvableType 的方法获取。
+
+
+### 2.1 对比 ResolvableType 与 Type
+
+要解析的类：
+
+```java
+public class GenericClass {
+   private HashMap<String, List<Integer>> field;
+}
+```
+
+使用 Type 解析：
+
+```java
+private static void analysisByJDK() throws NoSuchFieldException {
+    Field field = GenericClass.class.getDeclaredField("field");
+    ParameterizedType fieldType = (ParameterizedType) field.getGenericType();
+    Type[] argType = fieldType.getActualTypeArguments();
+    log.info("解析HashMap<String, List<Integer>>中的HashMap：{}", fieldType.getRawType());
+    log.info("解析HashMap<String, List<Integer>>中的HashMap的父类型：{}", ((Class) fieldType.getRawType()).getSuperclass());
+    log.info("解析HashMap<String, List<Integer>>中的String：{}", ((Class) argType[0]));
+    log.info("解析HashMap<String, List<Integer>>中的List<Integer>：{}", ((ParameterizedType) argType[1]));
+    log.info("解析HashMap<String, List<Integer>>中的List：{}", ((ParameterizedType) argType[1]).getRawType());
+    log.info("解析HashMap<String, List<Integer>>中的Integer：{}", ((Class) ((ParameterizedType) argType[1]).getActualTypeArguments()[0]));
+}
+```
+
+使用 ResolvableType 解析：
+
+```java
+private static void analysisBySpring() throws NoSuchFieldException {
+    Field field = GenericClass.class.getDeclaredField("field");
+    ResolvableType fieldResolvableType = ResolvableType.forField(field);
+    log.info("解析HashMap<String, List<Integer>>中的HashMap：{}", fieldResolvableType.getRawClass());
+    log.info("解析HashMap<String, List<Integer>>中的HashMap的父类型：{}", fieldResolvableType.getSuperType().getRawClass());
+    log.info("解析HashMap<String, List<Integer>>中的HashMap的父类型：{}", fieldResolvableType.getSuperType());
+    log.info("解析HashMap<String, List<Integer>>中的String：{}", fieldResolvableType.getGeneric(0).resolve());
+    log.info("解析HashMap<String, List<Integer>>中的List<Integer>：{}", fieldResolvableType.getGeneric(1));
+    log.info("解析HashMap<String, List<Integer>>中的List：{}", fieldResolvableType.getGeneric(1).resolve());
+    log.info("解析HashMap<String, List<Integer>>中的Integer：{}", fieldResolvableType.getGeneric(1, 0));
+}
+```
+
+处理结果：
+
+```
+========== Type ==========
+[main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的HashMap：class java.util.HashMap
+[main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的HashMap的父类型：class java.util.AbstractMap
+[main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的String：class java.lang.String
+[main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的List<Integer>：java.util.List<java.lang.Integer>
+[main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的List：interface java.util.List
+[main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的Integer：class java.lang.Integer
+========== ResolvableType ==========
+[main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的HashMap：class java.util.HashMap
+[main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的HashMap的父类型：class java.util.AbstractMap
+[main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的HashMap的父类型：java.util.AbstractMap<java.lang.String, java.util.List<java.lang.Integer>>
+[main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的String：class java.lang.String
+[main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的List<Integer>：java.util.List<java.lang.Integer>
+[main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的List：interface java.util.List
+[main] INFO com.xzy.spring.aaa.GenericClass - 解析HashMap<String, List<Integer>>中的Integer：java.lang.Integer
+```
+
+Type 最麻烦的地方就是各种方法分散在子接口中，使用前需要先进行类型判断、强制类型转换，既不方便又容易出错。相比之下，ResolvableType 统一封装了各种方法，用起来方便很多。
+
+![image-20230309140542678](markdown/Spring实战 - 工具类 ResolvableType.assets/image-20230309140542678.png)
+
+
+
+### 2.2 创建 ResolvableType
+
+
+
+
+
+### 2.3 使用 ResolvableType
