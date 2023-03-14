@@ -367,5 +367,14 @@ public class GenericEvent<T> extends ApplicationEvent implements ResolvableTypeP
 
 
 
+>   2023年3月14日 笔记：spring-context 模块中有一个 Spring 自带的泛型事件
+>
+>   ![image-20230314103556222](markdown/Spring实战 - 事件机制.assets/image-20230314103556222.png)
+>
+>   
+
+
+
 ##### 2.2.3.1 源码探究
 
+<(￣︶￣)↗[GO!](./Spring源码 - 事件机制.md)
