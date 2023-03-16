@@ -1,150 +1,208 @@
-# Spring 源码 - 事件机制
+# Spring 事件机制源码探究
+
+>   参考文章：http://t.csdn.cn/IK9aR
+
+
 
 [TOC]
 
+## 一、观察者模式
 
+观察者模式（Observer Pattern）也称监听模式、发布-订阅模式、从属模式。观察者模式属于行为型模式的一种，它定义了一种一对多的依赖关系，让多个观察者对象同时监听某一个主题对象。这个主题对象在状态变化时，会通知所有的观察者对象，使他们能够自动更新自己。
 
-## ApplicationEventMulticaster
+观察者模式结构图：
 
->   `Multicast`，译作广播、群播、多播。在计算机网络中，Multicast 指的将消息同时传递给一组目标地址。
+![20161111191040882](markdown/Spring源码 - 事件机制.assets/20161111191040882.png)
 
+JAVA 中存在两套观察者模式的实现方案：
 
-
-### 接口说明
-
-从功能的角度出发，ApplicationEventMulticaster 中的方法可以分为两类：管理监听器、管理事件
-
-```java
-public interface ApplicationEventMulticaster {
-
-    // ========== 管理监听器 ==========
-    
-   /**
-    * Add a listener to be notified of all events.
-    * @param listener the listener to add
-    */
-   void addApplicationListener(ApplicationListener<?> listener);
-
-   /**
-    * Add a listener bean to be notified of all events.
-    * @param listenerBeanName the name of the listener bean to add
-    */
-   void addApplicationListenerBean(String listenerBeanName);
-
-   /**
-    * Remove a listener from the notification list.
-    * @param listener the listener to remove
-    */
-   void removeApplicationListener(ApplicationListener<?> listener);
-
-   /**
-    * Remove a listener bean from the notification list.
-    * @param listenerBeanName the name of the listener bean to remove
-    */
-   void removeApplicationListenerBean(String listenerBeanName);
-
-   /**
-    * Remove all listeners registered with this multicaster.
-    * <p>After a remove call, the multicaster will perform no action
-    * on event notification until new listeners are registered.
-    */
-   void removeAllListeners();
-
-    
-    // ========== 管理事件 ==========
-    
-    
-   /**
-    * Multicast the given application event to appropriate listeners.
-    * <p>Consider using {@link #multicastEvent(ApplicationEvent, ResolvableType)}
-    * if possible as it provides better support for generics-based events.
-    * @param event the event to multicast
-    */
-   void multicastEvent(ApplicationEvent event);
-
-   /**
-    * Multicast the given application event to appropriate listeners.
-    * <p>If the {@code eventType} is {@code null}, a default type is built
-    * based on the {@code event} instance.
-    * @param event the event to multicast
-    * @param eventType the type of event (can be {@code null})
-    * @since 4.2
-    */
-   void multicastEvent(ApplicationEvent event, @Nullable ResolvableType eventType);
-
-}
-```
-
-ApplicationEventMulticaster 内定义了两个方法分别用于管理<u>普通事件</u>和<u>泛型事件</u>：
-
-1.   **普通事件**
-
-     普通事件：
+1.   基于 Observable、Observer。Observable 代表被观察对象，Observer 代表观察对象。
 
      ```java
-     public class XxxEvent extends ApplicationEvent {}
-     ```
-
-     普通事件监听器：
-
-     ```java
-     @Component
-     public class XxxEventListener implements ApplicationListener<XxxEvent> {...}
-     ```
-     
-2.   **泛型事件**
-
-     泛型事件：
-
-     ```java
-     public class XxxEvent<T> extends ApplicationEvent implements ResolvableTypeProvider {
-         // Return the {@link ResolvableType} describing this instance (or {@code null} if some sort of default should be applied instead).
+     class MyObservable extends Observable {
+         
          @Override
-         public ResolvableType getResolvableType() {...} 
+         protected synchronized void setChanged() {
+             super.setChanged();
+         }
      }
      ```
 
-     泛型事件监听器：
-
      ```java
-     @Component
-     public class XxxEventListener implements ApplicationListener<XxxEvent<XxxType>> {...}
+     @Slf4j
+     public class MyObserver implements Observer {
+         @Override
+         public void update(Observable o, Object arg) {
+             log.info("观察到 {} 的状态发生改变 {}", o, arg);
+         }
+     }
      ```
 
+     ```java
+     @Slf4j
+     class Main {
+         public static void main(String[] args) {
+             // 事件源
+             MyObservable observable = new MyObservable();
+     
+             // 事件监听器
+             MyObserver observer = new MyObserver();
+     
+             // 在事件源上添加监听器
+             observable.addObserver(observer);
+     
+             // 事件源对外发布通知
+             for (int i = 0; i < 3; i++) {
+                 observable.setChanged();
+                 observable.notifyObservers(i);
+             }
+         }
+     }
+     ```
+
+2.   基于 EventObject、EventListener。EventObject 代表被观察对象，EventListener 代表观察对象。
 
 
-### 接口实现
 
->   Q：关于实现 ApplicationEventMulticaster 接口你有什么思路？
->
->   A：实现接口的关键是如何确定 Listener 与 Event 之间的对应关系。
->
->   -   普通事件监听器：利用反射可以解析出 Listener 实现 ApplicationListener 接口时传递的类型参数是什么？而这个类型参数就是这个 Listener 对应的 Event
->   -   泛型事件监听器：由于 Java 的泛型存在`类型擦除`，因此没有办法利用反射机制准确的解析出 Listener 对应的 Event。此时可以采取“迂回策略”——Listener 对外提供一个方法用于表明自己到底需要监听那种 Event，之后只要在解析 Listener 时调用这个方法即可。
+## 二、Spring 事件机制
+
+Spring 的事件机制基于 JAVA 的 EventObject、EventListener。
 
 
 
-### 接口应用
+### 2.1 核心组件
+
+Spring 事件机制中有几个核心组件，它们是 Spring 对事件处理流程进行抽象的结果：
 
 
 
-通常 ApplicationEventPublisher 接口的实现类会借助 ApplicationEventMulticaster 的实例来实现监听器以及事件的管理（合成复用原则），典型的例子是 ApplicationContent 的实现类：
+```mermaid
+graph LR
 
-```java
-// ApplicationContent 接口继承了 ApplicationEventPublisher 接口
-public interface ApplicationContext extends ... ApplicationEventPublisher {}
+ApplicationEvent1[ApplicationEvent]
+ApplicationEvent2[ApplicationEvent]
+ApplicationEvent3[ApplicationEvent]
+ApplicationListener1[ApplicationListener]
+ApplicationListener2[ApplicationListener]
+ApplicationListener3[ApplicationListener]
+ApplicationEventPublisher[ApplicationEventPublisher]
+
+ApplicationEvent1-->ApplicationEventPublisher
+ApplicationEvent2-->ApplicationEventPublisher
+ApplicationEvent3-->ApplicationEventPublisher
+
+ApplicationEventPublisher-->ApplicationListener1
+ApplicationEventPublisher-->ApplicationListener2
+ApplicationEventPublisher-->ApplicationListener3
+
 ```
 
+
+
+#### （1）事件：ApplicationEvent
+
+Spring 中所有的事件都要实现 ApplicationEvent。
+
 ```java
-// ApplicationContent 接口的抽象类借助 ApplicationEventMulticaster 实例来实现事件监听器的管理以及事件的发布
-public abstract class AbstractApplicationContext ... implements ConfigurableApplicationContext {
-    ...
-    
-    /** Helper class used in event publishing. */
-	@Nullable
-	private ApplicationEventMulticaster applicationEventMulticaster;
-    
-    ...
+// Class to be extended by all application events.
+...
+public abstract class ApplicationEvent extends EventObject {
+   ...
 }
 ```
 
+
+
+Spring 中主要的 ApplicationEvent 子类：
+
+![image-20230315204114942](markdown/Spring源码 - 事件机制.assets/image-20230315204114942.png)
+
+-   `ApplicationContextEvent`：上下文生命周期中发布的事件
+    -   `ContextStoppedEvent`：停止上下文
+    -   `ContextRefreshedEvent`：刷新上下文
+    -   `ContextClosedEvent`：关闭上下文
+    -   `ContextStartedEvent`：启动上下文
+-   `PayloadApplicationEvent`：从4.2版本开始，Spring支持发布非 ApplicationEvent 类型的事件——Spring 会先将其封装成 PayloadApplicationEvent 实例，然后发布
+
+
+
+#### （2）事件监听：ApplicationListener
+
+Spring 中所有的监听器都要实现 ApplicationListener。监听器需要指明自己关心的事件，Spring 会在该事件发布时通知监听器，监听器收到通知后执行自己的处理逻辑。
+
+```java
+// Interface to be implemented by application event listeners.
+// Based on the standard  java.util.EventListener interface for the Observer design pattern
+...
+@FunctionalInterface
+public interface ApplicationListener<E extends ApplicationEvent> extends EventListener {
+   ...
+   
+   // 处理事件
+   void onApplicationEvent(E event);
+}
+```
+
+
+
+有两种方式定义监听器：
+
+1.   基于接口
+
+     ```java
+     @Component
+     public class MyListener implements ApplicationListener<MyEvent> {
+         @Override
+         public void onApplicationEvent(MyEvent myEvent){...}
+     }
+     ```
+
+2.   基于注解
+
+     ```java
+     @Configuration
+     public class ListenerConfig {
+         
+         @EventListener
+         public void handleMyEvent(MyEvent myEvent){...}
+     }
+     ```
+
+     由 `EventListenerMethodProcessor` 对 `@EventListener` 标注的方法进行处理，为它们创建对应的 ApplicationListener 实例。
+
+
+
+#### （3）事件发布：ApplicationEventPublisher
+
+ApplicationEventPublisher 用于发布事件——将事件传递给所有关注它的监听器。ApplicationEventPublisher 是 ApplicationContext 的父接口。
+
+```java
+// Interface that encapsulates event publication functionality.
+// Serves as a super-interface for ApplicationContext.
+
+@FunctionalInterface
+public interface ApplicationEventPublisher {
+
+   // 发布事件：事件会被传递给关心该事件的监听器
+   default void publishEvent(ApplicationEvent event) {
+      publishEvent((Object) event);
+   }
+
+   void publishEvent(Object event);
+
+}
+```
+
+
+
+### 2.2 底层源码
+
+
+
+#### （1）监听器管理
+
+
+
+
+
+#### （2）事件发布
